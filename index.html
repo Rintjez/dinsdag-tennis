@@ -321,7 +321,7 @@
             spelers = spelers.filter(s => s.id !== id);
             slaDataOp(); updateSpelersLijst();
         }
-    } function initialiseerGeschiedenis(alleSpelers) {
+    }function initialiseerGeschiedenis(alleSpelers) {
         alleSpelers.forEach(s1 => {
             if (!geschiedenisMatrix[s1.naam]) geschiedenisMatrix[s1.naam] = {};
             alleSpelers.forEach(s2 => {
@@ -345,12 +345,7 @@
         }
         for (let b = 0; b < banenAantal; b++) {
             let offset = b * 4;
-            registreer(schema[offset], schema[offset+1]);
-            registreer(schema[offset+2], schema[offset+3]);
-            registreer(schema[offset], schema[offset+2]);
-            registreer(schema[offset], schema[offset+3]);
-            registreer(schema[offset+1], schema[offset+2]);
-            registreer(schema[offset+1], schema[offset+3]);
+            controleerMatch(schema[offset], schema[offset+1], schema[offset+2], schema[offset+3]);
         }
         return straf;
     }
@@ -371,52 +366,49 @@
 
         initialiseerGeschiedenis(tossPoule);
         
-        let besteSchema = null; 
-        let laagsteStraf = Infinity;
+        let geldigeSchemas = [];
 
-        for (let i = 0; i < 2000; i++) {
+        // Doorzoek 5.000 combinaties en laat alleen opstellingen door met exact 0 of 1 punt sterkteverschil
+        for (let i = 0; i < 5000; i++) {
             let kandidaat = [...tossPoule];
             for (let j = kandidaat.length - 1; j > 0; j--) {
                 const k = Math.floor(Math.random() * (j + 1));
                 [kandidaat[j], kandidaat[k]] = [kandidaat[k], kandidaat[j]];
             }
 
-            let tijdelijkSchema = [];
-            let sterkteCheckGeslaagd = true;
+            let strikteBalansOk = true;
 
             for (let b = 0; b < aantalBanen; b++) {
                 let offset = b * 4;
-                let vierSpelers = [kandidaat[offset], kandidaat[offset+1], kandidaat[offset+2], kandidaat[offset+3]];
-                
-                vierSpelers.sort((a, b) => a.niveau - b.niveau);
-                
-                let t1_sterkte = vierSpelers[0].niveau + vierSpelers[3].niveau;
-                let t2_sterkte = vierSpelers[1].niveau + vierSpelers[2].niveau;
+                // Echte teams zoals ze op het scherm komen (0&1 vs 2&3)
+                let t1 = kandidaat[offset].niveau + kandidaat[offset+1].niveau;
+                let t2 = kandidaat[offset+2].niveau + kandidaat[offset+3].niveau;
 
-                if (Math.abs(t1_sterkte - t2_sterkte) > 1) {
-                    sterkteCheckGeslaagd = false;
+                // Als het krachtsverschil groter is dan 1, keuren we de loting direct af
+                if (Math.abs(t1 - t2) > 1) {
+                    strikteBalansOk = false;
                     break;
                 }
-
-                tijdelijkSchema.push(vierSpelers[0], vierSpelers[3], vierSpelers[1], vierSpelers[2]);
             }
 
-            if (!sterkteCheckGeslaagd) continue;
-
-            if (aantalBanen === 2) {
-                let baan1_totaal = tijdelijkSchema[0].niveau + tijdelijkSchema[1].niveau + tijdelijkSchema[2].niveau + tijdelijkSchema[3].niveau;
-                let baan2_totaal = tijdelijkSchema[4].niveau + tijdelijkSchema[5].niveau + tijdelijkSchema[6].niveau + tijdelijkSchema[7].niveau;
-                if (Math.abs(baan1_totaal - baan2_totaal) > 3) continue;
-            }
-
-            let strafscore = berekenSchemaStrafpunten(tijdelijkSchema, aantalBanen);
-            if (strafscore < laagsteStraf) { 
-                laagsteStraf = strafscore; 
-                besteSchema = tijdelijkSchema; 
+            if (strikteBalansOk) {
+                geldigeSchemas.push(kandidaat);
+                if (geldigeSchemas.length >= 100) break; 
             }
         }
 
-        if (!besteSchema) {
+        let besteSchema = null;
+        let laagsteStraf = Infinity;
+
+        if (geldigeSchemas.length > 0) {
+            geldigeSchemas.forEach(schema => {
+                let score = berekenSchemaStrafpunten(schema, aantalBanen);
+                if (score < laagsteStraf) {
+                    laagsteStraf = score;
+                    besteSchema = schema;
+                }
+            });
+        } else {
             besteSchema = [...tossPoule];
             besteSchema.sort((a, b) => a.niveau - b.niveau);
         }
