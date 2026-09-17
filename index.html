@@ -381,7 +381,7 @@
         // Update de tekst in de overlay pop-up
         document.getElementById('overlay-ronde-teller').textContent = `Ronde ${rondeNummer}`;
 
-        let gastMelding = gastenToegevoegd > 0 ? `<p style="color:#e67e22; font-size:14px; text-align:center; margin-bottom:10px;">⚠️ Automatisch ${gastenToegevoegd} gast(en) toegevoegd.</p>` : '';
+        let gastMelding = '';
         let indelingHtml = gastMelding;
         
         indelingHtml += `<div class="court-title">Baan 1</div><div class="match-box"><strong>${besteSchema[0].naam} (st. ${besteSchema[0].niveau}) & ${besteSchema[1].naam} (st. ${besteSchema[1].niveau})</strong><br><span class="vs">VS</span><br><strong>${besteSchema[2].naam} (st. ${besteSchema[2].niveau}) & ${besteSchema[3].naam} (st. ${besteSchema[3].niveau})</strong></div>`;
