@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Tennis Dubbel Toss</title>
+    <title>Dinsdag tennis</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="TennisToss">
+    <meta name="apple-mobile-web-app-title" content="DinsdagTennis">
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: #f4f7f6;
             color: #333;
             margin: 0;
-            padding: 15px;
+            padding: 15px 15px 75px 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -24,14 +24,17 @@
             background: white;
             padding: 20px;
             border-radius: 16px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 15 rgba(0,0,0,0.08);
             box-sizing: border-box;
+            margin-bottom: 20px;
         }
         h1, h2, h3 {
             text-align: center;
             color: #2c3e50;
             margin-top: 10px;
         }
+        .app-page { display: none; }
+        .app-page.active { display: block; }
         .court-title {
             color: #27ae60;
             border-bottom: 2px solid #27ae60;
@@ -56,7 +59,7 @@
             border-radius: 8px;
             font-size: 15px;
         }
-        input[type="text"] { flex: 2; }
+        input[type="text"] { flex: 2; width: 100%; box-sizing: border-box; }
         select { flex: 1; }
         .add-btn {
             background-color: #3498db;
@@ -68,13 +71,7 @@
             font-weight: bold;
             font-size: 15px;
         }
-        .player-list {
-            list-style: none;
-            padding: 0;
-            max-height: 250px;
-            overflow-y: auto;
-            margin: 0;
-        }
+        .player-list { list-style: none; padding: 0; margin: 0; }
         .player-item {
             display: flex;
             align-items: center;
@@ -90,18 +87,15 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 10px;
         }
-        .checkbox-custom {
-            width: 22px;
-            height: 22px;
-            cursor: pointer;
-        }
+        .checkbox-custom { width: 24px; height: 24px; cursor: pointer; }
         .remove-btn {
             background: #e74c3c;
             color: white;
             border: none;
             border-radius: 6px;
-            padding: 4px 10px;
+            padding: 6px 10px;
             cursor: pointer;
             font-size: 12px;
         }
@@ -115,11 +109,9 @@
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            transition: background 0.2s;
             margin-bottom: 10px;
             -webkit-tap-highlight-color: transparent;
         }
-        button.main-btn:hover { background-color: #219653; }
         .match-box {
             background: #f9f9f9;
             border: 1px solid #e0e0e0;
@@ -130,47 +122,77 @@
             font-size: 17px;
         }
         .vs { font-weight: bold; color: #e74c3c; margin: 0 8px; }
-        .level-badge {
-            font-size: 11px;
-            background: #e1e1e1;
-            padding: 2px 6px;
-            border-radius: 10px;
+        .level-badge { font-size: 11px; background: #e1e1e1; padding: 2px 6px; border-radius: 10px; }
+        .notice-box { font-size: 13px; color: #7f8c8d; text-align: center; margin-top: 5px; font-style: italic; }
+        .tab-bar {
+            position: fixed;
+            bottom: 0; left: 0; right: 0; height: 60px;
+            background-color: #ffffff;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            z-index: 1000;
         }
-        .notice-box {
-            font-size: 13px;
-            color: #7f8c8d;
-            text-align: center;
-            margin-top: 5px;
-            font-style: italic;
+        .tab-item {
+            display: flex; flex-direction: column; align-items: center;
+            color: #7f8c8d; text-decoration: none; font-size: 12px;
+            background: none; border: none; cursor: pointer;
+            width: 50%; height: 100%; justify-content: center;
         }
+        .tab-item.active { color: #27ae60; font-weight: bold; }
+        .tab-icon { font-size: 20px; margin-bottom: 2px; }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>🎾 Slimme Tennis Toss</h1>
-    <div class="setup-section">
-        <h3>Spelers (Vink aan wie er zijn)</h3>
-        <div class="form-group">
-            <input type="text" id="new-player-name" placeholder="Naam extra speler...">
-            <select id="new-player-level">
-                <option value="5">Sterkte 5</option>
-                <option value="6">Sterkte 6</option>
-                <option value="7" selected>Sterkte 7</option>
-                <option value="8">Sterkte 8</option>
-                <option value="9">Sterkte 9</option>
-            </select>
-            <button class="add-btn" onclick="voegSpelerToe()">+</button>
+    <h1>🎾 Dinsdag tennis</h1>
+    
+    <!-- TOSS SCHERM -->
+    <div id="page-toss" class="app-page active">
+        <div class="setup-section">
+            <h3>Wie spelen er vandaag mee?</h3>
+            <ul class="player-list" id="players-toss-ui"></ul>
+            <div id="player-count" style="font-weight: bold; margin-top: 10px; font-size: 14px; text-align: center; color: #2c3e50;">Aantal aanwezig: 0</div>
+            <div class="notice-box">Minder dan 4 of 8 spelers? De app vult automatisch gasten aan!</div>
         </div>
-        <ul class="player-list" id="players-ui"></ul>
-        <div id="player-count" style="font-weight: bold; margin-top: 10px; font-size: 14px; text-align: center; color: #2c3e50;">
-            Aantal aanwezig: 0
-        </div>
-        <div class="notice-box">Minder dan 4 of 8 spelers? De app vult automatisch gasten aan!</div>
+        <button class="main-btn" onclick="genereerOptimaleBanen()">Genereer Volgende Ronde</button>
+        <button class="main-btn" style="background-color: #7f8c8d; padding: 10px;" onclick="resetHistorie()">Wis Geheugen/Rondes</button>
+        <div id="ronde-teller" style="text-align:center; font-weight:bold; margin-top:10px; font-size: 18px; color: #27ae60;"></div>
+        <div id="banen-container"></div>
     </div>
-    <button class="main-btn" onclick="genereerOptimaleBanen()">Genereer Volgende Ronde</button>
-    <button class="main-btn" style="background-color: #7f8c8d; padding: 10px;" onclick="resetHistorie()">Wis Geheugen/Rondes</button>
-    <div id="ronde-teller" style="text-align:center; font-weight:bold; margin-top:10px; font-size: 18px; color: #27ae60;"></div>
-    <div id="banen-container"></div>
+
+    <!-- SPELERSBEHEER SCHERM -->
+    <div id="page-manage" class="app-page">
+        <div class="setup-section">
+            <h3>Nieuwe speler toevoegen</h3>
+            <div class="form-group">
+                <input type="text" id="new-player-name" placeholder="Naam speler...">
+                <select id="new-player-level">
+                    <option value="5">Sterkte 5</option>
+                    <option value="6">Sterkte 6</option>
+                    <option value="7" selected>Sterkte 7</option>
+                    <option value="8">Sterkte 8</option>
+                    <option value="9">Sterkte 9</option>
+                </select>
+                <button class="add-btn" onclick="voegSpelerToe()">+</button>
+            </div>
+        </div>
+        <div class="setup-section">
+            <h3>Ledenlijst & Speelsterktes</h3>
+            <ul class="player-list" id="players-manage-ui"></ul>
+        </div>
+    </div>
+</div>
+
+<div class="tab-bar">
+    <button class="tab-item active" id="tab-toss" onclick="wisselScherm('toss')">
+        <span class="tab-icon">🏆</span><span>Toss</span>
+    </button>
+    <button class="tab-item" id="tab-manage" onclick="wisselScherm('manage')">
+        <span class="tab-icon">⚙️</span><span>Spelersbeheer</span>
+    </button>
 </div>
 <script>
     const basisSpelers = [
@@ -182,63 +204,80 @@
         { id: 6, naam: "Eddy", niveau: 8, actief: true },
         { id: 7, naam: "Durk", niveau: 8, actief: true }
     ];
+
     let spelers = JSON.parse(localStorage.getItem('tennis_spelers')) || basisSpelers;
     let geschiedenisMatrix = JSON.parse(localStorage.getItem('tennis_historie')) || {};
     let rondeNummer = parseInt(localStorage.getItem('tennis_ronde')) || 0;
+
+    function wisselScherm(schermNaam) {
+        document.querySelectorAll('.app-page').forEach(page => page.classList.remove('active'));
+        document.querySelectorAll('.tab-item').forEach(tab => tab.classList.remove('active'));
+        if (schermNaam === 'toss') {
+            document.getElementById('page-toss').classList.add('active');
+            document.getElementById('tab-toss').classList.add('active');
+        } else if (schermNaam === 'manage') {
+            document.getElementById('page-manage').classList.add('active');
+            document.getElementById('tab-manage').classList.add('active');
+        }
+        updateSpelersLijst();
+    }
+
     function slaDataOp() {
         localStorage.setItem('tennis_spelers', JSON.stringify(spelers));
         localStorage.setItem('tennis_historie', JSON.stringify(geschiedenisMatrix));
         localStorage.setItem('tennis_ronde', rondeNummer.toString());
     }
+
     function updateSpelersLijst() {
-        const ui = document.getElementById('players-ui');
-        ui.innerHTML = '';
+        const tossUi = document.getElementById('players-toss-ui');
+        const manageUi = document.getElementById('players-manage-ui');
+        tossUi.innerHTML = ''; manageUi.innerHTML = '';
         let aantalActief = 0;
+
         spelers.forEach(speler => {
             if (speler.actief) aantalActief++;
-            const li = document.createElement('li');
-            li.className = 'player-item';
-            li.innerHTML = `
-                <input type="checkbox" class="checkbox-custom" ${speler.actief ? 'checked' : ''} onchange="toggleSpeler(${speler.id})">
-                <div class="player-info">
-                    <span><strong>${speler.naam}</strong></span>
-                    <span class="level-badge">Sterkte ${speler.niveau}</span>
-                    <button class="remove-btn" onclick="verwijderSpeler(${speler.id})">X</button>
-                </div>
-            `;
-            ui.appendChild(li);
+            const liToss = document.createElement('li');
+            liToss.className = 'player-item';
+            liToss.innerHTML = `<input type="checkbox" class="checkbox-custom" ${speler.actief ? 'checked' : ''} onchange="toggleSpeler(${speler.id})"><div class="player-info"><span><strong>${speler.naam}</strong></span><span class="level-badge">Sterkte ${speler.niveau}</span></div>`;
+            tossUi.appendChild(liToss);
+
+            const liManage = document.createElement('li');
+            liManage.className = 'player-item';
+            liManage.innerHTML = `<div class="player-info"><span><strong>${speler.naam}</strong></span><div><select style="padding:5px; font-size:13px;" onchange="wijzigSterkte(${speler.id}, this.value)"><option value="5" ${speler.niveau===5?'selected':''}>St. 5</option><option value="6" ${speler.niveau===6?'selected':''}>St. 6</option><option value="7" ${speler.niveau===7?'selected':''}>St. 7</option><option value="8" ${speler.niveau===8?'selected':''}>St. 8</option><option value="9" ${speler.niveau===9?'selected':''}>St. 9</option></select><button class="remove-btn" style="margin-left: 5px;" onclick="verwijderSpeler(${speler.id})">X</button></div></div>`;
+            manageUi.appendChild(liManage);
         });
         const countDiv = document.getElementById('player-count');
         countDiv.textContent = `Aanwezig geselecteerd: ${aantalActief} speler(s)`;
         countDiv.style.color = (aantalActief === 4 || aantalActief === 8) ? '#27ae60' : '#d35400';
     }
+
     function toggleSpeler(id) {
         const speler = spelers.find(s => s.id === id);
         if (speler) speler.actief = !speler.actief;
-        slaDataOp();
-        updateSpelersLijst();
+        slaDataOp(); updateSpelersLijst();
     }
+
+    function wijzigSterkte(id, nieuweSterkte) {
+        const speler = spelers.find(s => s.id === id);
+        if (speler) speler.niveau = parseInt(nieuweSterkte);
+        slaDataOp();
+    }
+
     function voegSpelerToe() {
         const nameInput = document.getElementById('new-player-name');
         const levelInput = document.getElementById('new-player-level');
         if (!nameInput.value.trim()) return;
-        const nieuweSpeler = {
-            id: Date.now(),
-            naam: nameInput.value.trim(),
-            niveau: parseInt(levelInput.value),
-            actief: true
-        };
-        spelers.push(nieuweSpeler);
-        nameInput.value = '';
-        slaDataOp();
-        updateSpelersLijst();
+        spelers.push({ id: Date.now(), naam: nameInput.value.trim(), niveau: parseInt(levelInput.value), actief: true });
+        nameInput.value = ''; slaDataOp(); updateSpelersLijst();
     }
+
     function verwijderSpeler(id) {
-        spelers = spelers.filter(s => s.id !== id);
-        slaDataOp();
-        updateSpelersLijst();
+        if (confirm("Weet je zeker dat je deze speler wilt verwijderen?")) {
+            spelers = spelers.filter(s => s.id !== id);
+            slaDataOp(); updateSpelersLijst();
+        }
     }
-    function initialiseerGeschiedenis(alleSpelers) {
+     function initialiseerGeschiedenis(alleSpelers) {
         alleSpelers.forEach(s1 => {
             if (!geschiedenisMatrix[s1.naam]) geschiedenisMatrix[s1.naam] = {};
             alleSpelers.forEach(s2 => {
@@ -248,6 +287,7 @@
             });
         });
     }
+
     function berekenSchemaStrafpunten(schema, banenAantal) {
         let straf = 0;
         function controleerMatch(p1, p2, p3, p4) {
@@ -259,36 +299,29 @@
             straf += (geschiedenisMatrix[p2.naam]?.[p3.naam] || 0);
             straf += (geschiedenisMatrix[p2.naam]?.[p4.naam] || 0);
         }
-        controleerMatch(schema, schema, schema, schema);
-        if (banenAantal === 2) {
-            controleerMatch(schema, schema, schema, schema);
-        }
+        controleerMatch(schema[0], schema[1], schema[2], schema[3]);
+        if (banenAantal === 2) controleerMatch(schema[4], schema[5], schema[6], schema[7]);
         return straf;
     }
+
     function genereerOptimaleBanen() {
         let actieveSpelers = spelers.filter(s => s.actief);
         let aantalAanwezig = actieveSpelers.length;
-        if (aantalAanwezig === 0) {
-            alert("Vink eerst aan welke spelers er vandaag aanwezig zijn!");
-            return;
-        }
+        if (aantalAanwezig === 0) { alert("Vink eerst aan wie er aanwezig zijn!"); return; }
+
         let benodigdeSpelers = aantalAanwezig <= 4 ? 4 : 8;
         let aantalBanen = benodigdeSpelers === 4 ? 1 : 2;
-        let gastenToegevoegd = 0;
-        let tossPoule = [...actieveSpelers];
+        let gastenToegevoegd = 0; let tossPoule = [...actieveSpelers];
+
         while (tossPoule.length < benodigdeSpelers) {
             gastenToegevoegd++;
-            tossPoule.push({
-                id: `gast-${gastenToegevoegd}`,
-                naam: `Gast ${gastenToegevoegd}`,
-                niveau: 7,
-                isGast: true
-            });
+            tossPoule.push({ id: `gast-${gastenToegevoegd}`, naam: `Gast ${gastenToegevoegd}`, niveau: 7 });
         }
+
         initialiseerGeschiedenis(tossPoule);
         tossPoule.sort((a, b) => a.niveau - b.niveau);
-        let besteSchema = null;
-        let laagsteStraf = Infinity;
+        let besteSchema = null; let laagsteStraf = Infinity;
+
         for (let i = 0; i < 200; i++) {
             let kandidaat = [...tossPoule];
             for (let j = kandidaat.length - 1; j > 0; j--) {
@@ -296,39 +329,25 @@
                 [kandidaat[j], kandidaat[k]] = [kandidaat[k], kandidaat[j]];
             }
             let strafscore = berekenSchemaStrafpunten(kandidaat, aantalBanen);
-            if (strafscore < laagsteStraf) {
-                laagsteStraf = strafscore;
-                besteSchema = kandidaat;
-            }
+            if (strafscore < laagsteStraf) { laagsteStraf = strafscore; besteSchema = kandidaat; }
         }
-        updateGeschiedenis(besteSchema, aantalBanen);
-        rondeNummer++;
-        slaDataOp();
+
+        updateGeschiedenis(besteSchema, aantalBanen); rondeNummer++; slaDataOp();
         document.getElementById('ronde-teller').textContent = `Ronde ${rondeNummer}`;
-        let gastMelding = gastenToegevoegd > 0 ? `<p style="color:#d35400; font-size:13px; text-align:center;">⚠️ Er zijn automatisch ${gastenToegevoegd} gast(en) toegevoegd om de banen te vullen.</p>` : '';
+
+        let gastMelding = gastenToegevoegd > 0 ? `<p style="color:#d35400; font-size:13px; text-align:center;">⚠️ Automatisch ${gastenToegevoegd} gast(en) toegevoegd.</p>` : '';
         let indelingHtml = gastMelding;
-        indelingHtml += `
-            <h3 class="court-title">Baan 1</h3>
-            <div class="match-box">
-                <strong>${besteSchema[0].naam} (st. ${besteSchema[0].niveau}) & ${besteSchema[1].naam} (st. ${besteSchema[1].niveau})</strong>
-                <span class="vs">VS</span>
-                <strong>${besteSchema[2].naam} (st. ${besteSchema[2].niveau}) & ${besteSchema[3].naam} (st. ${besteSchema[3].niveau})</strong>
-            </div>
-        `;
+        
+        indelingHtml += `<h3 class="court-title">Baan 1</h3><div class="match-box"><strong>${besteSchema[0].naam} (st. ${besteSchema[0].niveau}) & ${besteSchema[1].naam} (st. ${besteSchema[1].niveau})</strong><span class="vs">VS</span><strong>${besteSchema[2].naam} (st. ${besteSchema[2].niveau}) & ${besteSchema[3].naam} (st. ${besteSchema[3].niveau})</strong></div>`;
         if (aantalBanen === 2) {
-            indelingHtml += `
-                <h3 class="court-title">Baan 2</h3>
-                <div class="match-box">
-                    <strong>${besteSchema[4].naam} (st. ${besteSchema[4].niveau}) & ${besteSchema[5].naam} (st. ${besteSchema[5].niveau})</strong>
-                    <span class="vs">VS</span>
-                    <strong>${besteSchema[6].naam} (st. ${besteSchema[6].niveau}) & ${besteSchema[7].naam} (st. ${besteSchema[7].niveau})</strong>
-                </div>
-            `;
+            indelingHtml += `<h3 class="court-title">Baan 2</h3><div class="match-box"><strong>${besteSchema[4].naam} (st. ${besteSchema[4].niveau}) & ${besteSchema[5].naam} (st. ${besteSchema[5].niveau})</strong><span class="vs">VS</span><strong>${besteSchema[6].naam} (st. ${besteSchema[6].niveau}) & ${besteSchema[7].naam} (st. ${besteSchema[7].niveau})</strong></div>`;
         }
         document.getElementById('banen-container').innerHTML = indelingHtml;
     }
+
     function updateGeschiedenis(schema, banenAantal) {
         function registreer(p1, p2) {
+            if (!p1 || !p2 || p1.naam === p2.naam) return;
             if (!geschiedenisMatrix[p1.naam]) geschiedenisMatrix[p1.naam] = {};
             geschiedenisMatrix[p1.naam][p2.naam] = (geschiedenisMatrix[p1.naam][p2.naam] || 0) + 1;
             if (!geschiedenisMatrix[p2.naam]) geschiedenisMatrix[p2.naam] = {};
@@ -341,20 +360,19 @@
             registreer(schema[5], schema[6]); registreer(schema[5], schema[7]); registreer(schema[6], schema[7]);
         }
     }
+
     function resetHistorie() {
-        if(confirm("Weet je zeker dat je alle gespeelde rondes en het geheugen wilt wissen?")) {
-            geschiedenisMatrix = {};
-            rondeNummer = 0;
-            slaDataOp();
+        if(confirm("Geheugen en rondes wissen?")) {
+            geschiedenisMatrix = {}; rondeNummer = 0; slaDataOp();
             document.getElementById('ronde-teller').textContent = '';
             document.getElementById('banen-container').innerHTML = '<p style="text-align:center;">Geheugen gewist.</p>';
             updateSpelersLijst();
         }
     }
-    if(rondeNummer > 0) {
-        document.getElementById('ronde-teller').textContent = `Ronde ${rondeNummer}`;
-    }
+
+    if(rondeNummer > 0) document.getElementById('ronde-teller').textContent = `Ronde ${rondeNummer}`;
     updateSpelersLijst();
 </script>
 </body>
 </html>
+    
