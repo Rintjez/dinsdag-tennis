@@ -6,7 +6,7 @@
     <title>Dinsdag tennis</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Dinsdag Tennis">
+    <meta name="apple-mobile-web-app-title" content="DinsdagTennis">
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -24,7 +24,7 @@
             background: white;
             padding: 20px;
             border-radius: 16px;
-            box-shadow: 0 4px 15 rgba(0,0,0,0.08);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
             box-sizing: border-box;
             margin-bottom: 20px;
         }
@@ -35,12 +35,6 @@
         }
         .app-page { display: none; }
         .app-page.active { display: block; }
-        .court-title {
-            color: #27ae60;
-            border-bottom: 2px solid #27ae60;
-            padding-bottom: 5px;
-            margin-top: 25px;
-        }
         .setup-section {
             background: #f9f9f9;
             padding: 15px;
@@ -112,17 +106,54 @@
             margin-bottom: 10px;
             -webkit-tap-highlight-color: transparent;
         }
+        /* Nieuw: Schermvullend uitslagenscherm (Overlay) */
+        .result-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #1e272c;
+            color: white;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            z-index: 2000;
+            box-sizing: border-box;
+        }
+        .result-overlay.active { display: flex; }
+        .result-title { color: #2ecc71; margin-bottom: 10px; font-size: 28px; }
+        .result-subtitle { color: #bdc3c7; font-size: 18px; margin-bottom: 30px; }
+        .court-title {
+            color: #2ecc71;
+            border-bottom: 2px solid #2ecc71;
+            padding-bottom: 5px;
+            margin-top: 25px;
+            width: 100%;
+            max-width: 450px;
+            font-size: 22px;
+        }
         .match-box {
-            background: #f9f9f9;
-            border: 1px solid #e0e0e0;
-            border-radius: 10px;
-            padding: 15px;
+            background: #2c3e50;
+            border: 1px solid #34495e;
+            border-radius: 12px;
+            padding: 20px;
             margin-top: 15px;
             text-align: center;
-            font-size: 17px;
+            font-size: 19px;
+            width: 100%;
+            max-width: 450px;
+            box-sizing: border-box;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
-        .vs { font-weight: bold; color: #e74c3c; margin: 0 8px; }
-        .level-badge { font-size: 11px; background: #e1e1e1; padding: 2px 6px; border-radius: 10px; }
+        .vs { font-weight: bold; color: #e74c3c; margin: 0 10px; }
+        .close-tip {
+            margin-top: 40px;
+            font-size: 14px;
+            color: #7f8c8d;
+            font-style: italic;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
         .notice-box { font-size: 13px; color: #7f8c8d; text-align: center; margin-top: 5px; font-style: italic; }
         .tab-bar {
             position: fixed;
@@ -146,10 +177,21 @@
     </style>
 </head>
 <body>
+
+<!-- Het schermvullende pop-up scherm dat sluit bij een tik -->
+<div id="result-screen" class="result-overlay" onclick="sluitResultatenScherm()">
+    <div class="result-title">🎾 Baanindeling</div>
+    <div id="overlay-ronde-teller" class="result-subtitle">Ronde 1</div>
+    
+    <div id="overlay-banen-container" style="width:100%; display:flex; flex-direction:column; align-items:center;"></div>
+    
+    <div class="close-tip">Tik ergens op het scherm om terug te gaan</div>
+</div>
+
 <div class="container">
     <h1>🎾 Dinsdag tennis</h1>
     
-    <!-- TOSS SCHERM -->
+    <!-- TOSS SCHERM (1e Scherm) -->
     <div id="page-toss" class="app-page active">
         <div class="setup-section">
             <h3>Wie spelen er vandaag mee?</h3>
@@ -159,11 +201,9 @@
         </div>
         <button class="main-btn" onclick="genereerOptimaleBanen()">Genereer Volgende Ronde</button>
         <button class="main-btn" style="background-color: #7f8c8d; padding: 10px;" onclick="resetHistorie()">Wis Geheugen/Rondes</button>
-        <div id="ronde-teller" style="text-align:center; font-weight:bold; margin-top:10px; font-size: 18px; color: #27ae60;"></div>
-        <div id="banen-container"></div>
     </div>
 
-    <!-- SPELERSBEHEER SCHERM -->
+    <!-- SPELERSBEHEER SCHERM (2e Scherm) -->
     <div id="page-manage" class="app-page">
         <div class="setup-section">
             <h3>Nieuwe speler toevoegen</h3>
@@ -194,7 +234,7 @@
         <span class="tab-icon">⚙️</span><span>Spelersbeheer</span>
     </button>
 </div>
-<script>
+    <script>
     const basisSpelers = [
         { id: 1, naam: "Alexander", niveau: 6, actief: true },
         { id: 2, naam: "Rintje", niveau: 7, actief: true },
@@ -220,6 +260,10 @@
             document.getElementById('tab-manage').classList.add('active');
         }
         updateSpelersLijst();
+    }
+
+    function sluitResultatenScherm() {
+        document.getElementById('result-screen').classList.remove('active');
     }
 
     function slaDataOp() {
@@ -277,7 +321,7 @@
             slaDataOp(); updateSpelersLijst();
         }
     }
-     function initialiseerGeschiedenis(alleSpelers) {
+         function initialiseerGeschiedenis(alleSpelers) {
         alleSpelers.forEach(s1 => {
             if (!geschiedenisMatrix[s1.naam]) geschiedenisMatrix[s1.naam] = {};
             alleSpelers.forEach(s2 => {
@@ -299,8 +343,8 @@
             straf += (geschiedenisMatrix[p2.naam]?.[p3.naam] || 0);
             straf += (geschiedenisMatrix[p2.naam]?.[p4.naam] || 0);
         }
-        controleerMatch(schema[0], schema[1], schema[2], schema[3]);
-        if (banenAantal === 2) controleerMatch(schema[4], schema[5], schema[6], schema[7]);
+        controleerMatch(schema, schema, schema, schema);
+        if (banenAantal === 2) controleerMatch(schema, schema, schema, schema);
         return straf;
     }
 
@@ -333,16 +377,21 @@
         }
 
         updateGeschiedenis(besteSchema, aantalBanen); rondeNummer++; slaDataOp();
-        document.getElementById('ronde-teller').textContent = `Ronde ${rondeNummer}`;
+        
+        // Update de tekst in de overlay pop-up
+        document.getElementById('overlay-ronde-teller').textContent = `Ronde ${rondeNummer}`;
 
-        let gastMelding = gastenToegevoegd > 0 ? `<p style="color:#d35400; font-size:13px; text-align:center;">⚠️ Automatisch ${gastenToegevoegd} gast(en) toegevoegd.</p>` : '';
+        let gastMelding = gastenToegevoegd > 0 ? `<p style="color:#e67e22; font-size:14px; text-align:center; margin-bottom:10px;">⚠️ Automatisch ${gastenToegevoegd} gast(en) toegevoegd.</p>` : '';
         let indelingHtml = gastMelding;
         
-        indelingHtml += `<h3 class="court-title">Baan 1</h3><div class="match-box"><strong>${besteSchema[0].naam} (st. ${besteSchema[0].niveau}) & ${besteSchema[1].naam} (st. ${besteSchema[1].niveau})</strong><span class="vs">VS</span><strong>${besteSchema[2].naam} (st. ${besteSchema[2].niveau}) & ${besteSchema[3].naam} (st. ${besteSchema[3].niveau})</strong></div>`;
+        indelingHtml += `<div class="court-title">Baan 1</div><div class="match-box"><strong>${besteSchema[0].naam} (st. ${besteSchema[0].niveau}) & ${besteSchema[1].naam} (st. ${besteSchema[1].niveau})</strong><br><span class="vs">VS</span><br><strong>${besteSchema[2].naam} (st. ${besteSchema[2].niveau}) & ${besteSchema[3].naam} (st. ${besteSchema[3].niveau})</strong></div>`;
         if (aantalBanen === 2) {
-            indelingHtml += `<h3 class="court-title">Baan 2</h3><div class="match-box"><strong>${besteSchema[4].naam} (st. ${besteSchema[4].niveau}) & ${besteSchema[5].naam} (st. ${besteSchema[5].niveau})</strong><span class="vs">VS</span><strong>${besteSchema[6].naam} (st. ${besteSchema[6].niveau}) & ${besteSchema[7].naam} (st. ${besteSchema[7].niveau})</strong></div>`;
+            indelingHtml += `<div class="court-title">Baan 2</div><div class="match-box"><strong>${besteSchema[4].naam} (st. ${besteSchema[4].niveau}) & ${besteSchema[5].naam} (st. ${besteSchema[5].niveau})</strong><br><span class="vs">VS</span><br><strong>${besteSchema[6].naam} (st. ${besteSchema[6].niveau}) & ${besteSchema[7].naam} (st. ${besteSchema[7].niveau})</strong></div>`;
         }
-        document.getElementById('banen-container').innerHTML = indelingHtml;
+        
+        // Stop de indeling in de overlay en toon het schermvullend
+        document.getElementById('overlay-banen-container').innerHTML = indelingHtml;
+        document.getElementById('result-screen').classList.add('active');
     }
 
     function updateGeschiedenis(schema, banenAantal) {
@@ -364,15 +413,11 @@
     function resetHistorie() {
         if(confirm("Geheugen en rondes wissen?")) {
             geschiedenisMatrix = {}; rondeNummer = 0; slaDataOp();
-            document.getElementById('ronde-teller').textContent = '';
-            document.getElementById('banen-container').innerHTML = '<p style="text-align:center;">Geheugen gewist.</p>';
             updateSpelersLijst();
         }
     }
 
-    if(rondeNummer > 0) document.getElementById('ronde-teller').textContent = `Ronde ${rondeNummer}`;
     updateSpelersLijst();
 </script>
 </body>
 </html>
-    
