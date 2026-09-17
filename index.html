@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <title>Dinsdag Tennis</title>
+
+<!-- iPhone / PWA achtig -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="apple-touch-icon" href="tennis-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+
 <style>
 body {
     font-family: Arial, sans-serif;
@@ -34,7 +41,6 @@ label {
     margin: 6px;
     padding: 10px;
     border-radius: 50%;
-    background: #c7f36b;
     min-width: 80px;
     text-align: center;
     font-weight: bold;
@@ -49,11 +55,37 @@ label {
     font-size: 12px;
     color: #555;
 }
+input[type="number"] {
+    width: 50px;
+}
+.player-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 4px 0;
+}
+.player-row button {
+    padding: 4px 8px;
+}
+.str-6 { background: #b3e5fc; }
+.str-7 { background: #c8e6c9; }
+.str-8 { background: #ffe082; }
+.str-default { background: #e0e0e0; }
 </style>
 </head>
 <body>
 
 <h1>Dinsdag Tennis Loting</h1>
+
+<section>
+    <h2>Spelersbeheer</h2>
+    <div id="beheer"></div>
+
+    <h3>Nieuwe speler toevoegen</h3>
+    <input id="newName" placeholder="Naam">
+    <input id="newStrength" type="number" min="1" max="10" value="7">
+    <button onclick="addPlayer()">Toevoegen</button>
+</section>
 
 <section>
     <h2>Stap 3 – Aanwezige spelers</h2>
@@ -77,6 +109,7 @@ label {
     <h2>Stap 1 – Loting uitvoeren</h2>
     <button onclick="loten()">Loten</button>
     <button onclick="toonHistorie()">Historie tonen</button>
+    <button onclick="exportHistorie()">Export historie (.txt)</button>
     <div id="teams"></div>
 </section>
 
@@ -86,15 +119,15 @@ label {
 </section>
 
 <script>
-// --- SPELERS + STERKTES ---
-const BASIS_SPELERS = [
-    { naam: "Alex",    sterkte: 6 },
-    { naam: "Rintje",  sterkte: 7 },
-    { naam: "Douwe",   sterkte: 7 },
-    { naam: "Giep",    sterkte: 6 },
+// --- INITIELE SPELERS (fallback) ---
+const INIT_SPELERS = [
+    { naam: "Alex", sterkte: 6 },
+    { naam: "Rintje", sterkte: 7 },
+    { naam: "Douwe", sterkte: 7 },
+    { naam: "Giep", sterkte: 6 },
     { naam: "Lammert", sterkte: 8 },
-    { naam: "Eddy",    sterkte: 8 },
-    { naam: "Durkh",   sterkte: 7 }
+    { naam: "Eddy", sterkte: 8 },
+    { naam: "Durkh", sterkte: 7 }
 ];
 
 const GASTEN = [
@@ -103,41 +136,99 @@ const GASTEN = [
     { naam: "Gast3", sterkte: 7 }
 ];
 
-// --- UI: SPELERS TONEN ---
+let spelers = loadSpelers();
+let laatsteTeams = []; // voor geen herhaling
+
+function loadSpelers() {
+    const s = localStorage.getItem("spelers");
+    if (s) {
+        try { return JSON.parse(s); } catch(e) {}
+    }
+    return INIT_SPELERS.slice();
+}
+
+function saveSpelers() {
+    localStorage.setItem("spelers", JSON.stringify(spelers));
+}
+
+// --- SPELERS BEHEER SCHERM ---
+function toonBeheer() {
+    const div = document.getElementById("beheer");
+    div.innerHTML = "";
+
+    spelers.forEach((sp, i) => {
+        div.innerHTML += `
+            <div class="player-row">
+                <span>${sp.naam}</span>
+                <input type="number" min="1" max="10" value="${sp.sterkte}"
+                    onchange="updateStrength(${i}, this.value)">
+                <button onclick="removePlayer(${i})">Verwijder</button>
+            </div>
+        `;
+    });
+}
+toonBeheer();
+
+// --- SPELERS TOEVOEGEN ---
+function addPlayer() {
+    const name = document.getElementById("newName").value.trim();
+    const strength = parseInt(document.getElementById("newStrength").value);
+
+    if (!name) {
+        alert("Naam ontbreekt.");
+        return;
+    }
+
+    spelers.push({ naam: name, sterkte: strength });
+    saveSpelers();
+    toonBeheer();
+    toonSpelers();
+}
+
+// --- SPELERS VERWIJDEREN ---
+function removePlayer(i) {
+    spelers.splice(i, 1);
+    saveSpelers();
+    toonBeheer();
+    toonSpelers();
+}
+
+// --- SPEELSTERKTE AANPASSEN ---
+function updateStrength(i, val) {
+    spelers[i].sterkte = parseInt(val);
+    saveSpelers();
+    toonBeheer();
+    toonSpelers();
+}
+
+// --- AANWEZIGHEID SCHERM ---
 function toonSpelers() {
     const div = document.getElementById("spelers");
     div.innerHTML = "";
-    BASIS_SPELERS.forEach((speler, i) => {
+    spelers.forEach((sp, i) => {
         div.innerHTML += `
             <label>
                 <input type="checkbox" id="sp${i}">
-                ${speler.naam} (sterkte ${speler.sterkte})
+                ${sp.naam} (sterkte ${sp.sterkte})
             </label>
         `;
     });
 }
 toonSpelers();
 
-// --- GAST LOGICA ---
+// --- GAST LOGICA (ALTIJD TOT 4 SPELERS) ---
 function voegGastenToe(aanwezige) {
     const n = aanwezige.length;
     let extra = [];
 
-    if (n >= 7) {
-        extra = [GASTEN[0]]; // Gast1
-    } else if (n === 6) {
-        extra = [GASTEN[0], GASTEN[1]]; // Gast1 + Gast2
-    } else if (n === 5) {
-        extra = [GASTEN[0], GASTEN[1], GASTEN[2]]; // Gast1 + Gast2 + Gast3
-    } else if (n === 4) {
-        extra = []; // niets
-    } else if (n === 3) {
-        extra = [GASTEN[0]]; // Gast1
-    } else if (n === 2) {
-        extra = [GASTEN[0], GASTEN[1]]; // Gast1 + Gast2
-    } else if (n === 1) {
-        extra = [GASTEN[0], GASTEN[1], GASTEN[2]]; // Gast1 + Gast2 + Gast3
-    } else {
+    if (n >= 7) extra = [GASTEN[0]];
+    else if (n === 6) extra = [GASTEN[0], GASTEN[1]];
+    else if (n === 5) extra = [GASTEN[0], GASTEN[1], GASTEN[2]];
+    else if (n === 4) extra = [];
+    else if (n === 3) extra = [GASTEN[0]];
+    else if (n === 2) extra = [GASTEN[0], GASTEN[1]];
+    else if (n === 1) extra = [GASTEN[0], GASTEN[1], GASTEN[2]];
+    else {
         alert("Te weinig spelers (0).");
         return [];
     }
@@ -145,7 +236,7 @@ function voegGastenToe(aanwezige) {
     return aanwezige.concat(extra);
 }
 
-// --- HULP: SHUFFLE ---
+// --- SHUFFLE ---
 function shuffle(arr) {
     const a = arr.slice();
     for (let i = a.length - 1; i > 0; i--) {
@@ -166,7 +257,6 @@ function maakTeamsRandom(spelers) {
 }
 
 function maakTeamsA(spelers) {
-    // sorteer op sterkte
     const sorted = spelers.slice().sort((a, b) => a.sterkte - b.sterkte);
     const teams = [];
     let i = 0;
@@ -177,6 +267,23 @@ function maakTeamsA(spelers) {
         j--;
     }
     return teams;
+}
+
+// --- GEEN HERHALING VAN TEAMS ---
+function teamsGelijk(t1, t2) {
+    return (
+        (t1[0].naam === t2[0].naam && t1[1].naam === t2[1].naam) ||
+        (t1[0].naam === t2[1].naam && t1[1].naam === t2[0].naam)
+    );
+}
+
+function setIsHerhaling(teams) {
+    if (!laatsteTeams || laatsteTeams.length === 0) return false;
+    if (teams.length !== laatsteTeams.length) return false;
+    for (let i = 0; i < teams.length; i++) {
+        if (!teamsGelijk(teams[i], laatsteTeams[i])) return false;
+    }
+    return true;
 }
 
 // --- HISTORIE OPSLAG ---
@@ -208,34 +315,65 @@ function toonHistorie() {
     div.innerHTML = html;
 }
 
-// --- TEAMS WEERGAVE (TENNNISBAL BLOKJES) ---
-function toonTeams(teams) {
-    const div = document.getElementById("teams");
-    if (!teams || teams.length === 0) {
-        div.innerHTML = "<p>Geen teams gemaakt.</p>";
+// --- EXPORT HISTORIE ALS TXT ---
+function exportHistorie() {
+    const hist = JSON.parse(localStorage.getItem("historie") || "[]");
+    if (hist.length === 0) {
+        alert("Geen historie om te exporteren.");
         return;
     }
+    let txt = "";
+    hist.forEach((entry, idx) => {
+        txt += `Loting ${idx+1} (${entry.datum})\n`;
+        entry.teams.forEach((team, i) => {
+            txt += `  Team ${i+1}: ${team[0]} & ${team[1]}\n`;
+        });
+        txt += "\n";
+    });
+
+    const blob = new Blob([txt], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "dinsdag-tennis-historie.txt";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// --- KLEUR PER STERKTE ---
+function strengthClass(s) {
+    if (s === 6) return "str-6";
+    if (s === 7) return "str-7";
+    if (s === 8) return "str-8";
+    return "str-default";
+}
+
+// --- TEAMS WEERGAVE (TENNISBAL BLOKJES) ---
+function toonTeams(teams) {
+    const div = document.getElementById("teams");
     let html = "<h3>Teams</h3>";
     teams.forEach((team, i) => {
         html += `
             <div class="team-row">
                 <span>Team ${i+1}:</span>
-                <span class="team-box">${team[0].naam}</span>
-                <span class="team-box">${team[1].naam}</span>
+                <span class="team-box ${strengthClass(team[0].sterkte)}">${team[0].naam}</span>
+                <span class="team-box ${strengthClass(team[1].sterkte)}">${team[1].naam}</span>
             </div>
         `;
     });
     div.innerHTML = html;
 }
 
-// --- LOTING HOOFDFUNCTIE ---
+// --- LOTING ---
 function loten() {
-    // 1. Aanwezige spelers verzamelen
     let aanwezige = [];
-    BASIS_SPELERS.forEach((speler, i) => {
+
+    spelers.forEach((sp, i) => {
         const cb = document.getElementById("sp"+i);
         if (cb && cb.checked) {
-            aanwezige.push({ naam: speler.naam, sterkte: speler.sterkte });
+            aanwezige.push({ naam: sp.naam, sterkte: sp.sterkte });
         }
     });
 
@@ -244,25 +382,23 @@ function loten() {
         return;
     }
 
-    // 2. Gasten toevoegen volgens jouw logica
     const metGasten = voegGastenToe(aanwezige);
     if (metGasten.length === 0) return;
 
-    // 3. Mode bepalen (A-teams of random)
     const mode = document.querySelector('input[name="mode"]:checked').value;
 
     let teams;
-    if (mode === "a") {
-        teams = maakTeamsA(metGasten);
-    } else {
-        teams = maakTeamsRandom(metGasten);
+    if (mode === "a") teams = maakTeamsA(metGasten);
+    else teams = maakTeamsRandom(metGasten);
+
+    if (setIsHerhaling(teams)) {
+        alert("Deze teams zijn hetzelfde als de vorige loting. Nogmaals loten voor nieuwe combinaties.");
+        return;
     }
 
-    // 4. Teams tonen in tennisbal-blokjes
     toonTeams(teams);
-
-    // 5. Historie opslaan
     saveHistorie(teams);
+    laatsteTeams = teams;
 }
 </script>
 
