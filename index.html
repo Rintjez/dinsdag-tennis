@@ -345,7 +345,7 @@
         }
         for (let b = 0; b < banenAantal; b++) {
             let offset = b * 4;
-            // Dit is gecorrigeerd: roep nu netjes controleerMatch aan
+            // FOUT OPGELOST: De overbodige en vastlopende 'registreer' regels zijn hier volledig weggehaald!
             controleerMatch(schema[offset], schema[offset+1], schema[offset+2], schema[offset+3]);
         }
         return straf;
@@ -369,7 +369,7 @@
         
         let geldigeSchemas = [];
 
-        // Doorzoek 5.000 combinaties en laat alleen opstellingen door met exact 0 of 1 punt sterkteverschil
+        // Filter 5.000 combinaties op de 1-punt sterkte-eis per baan
         for (let i = 0; i < 5000; i++) {
             let kandidaat = [...tossPoule];
             for (let j = kandidaat.length - 1; j > 0; j--) {
