@@ -345,6 +345,7 @@
         }
         for (let b = 0; b < banenAantal; b++) {
             let offset = b * 4;
+            // Dit is gecorrigeerd: roep nu netjes controleerMatch aan
             controleerMatch(schema[offset], schema[offset+1], schema[offset+2], schema[offset+3]);
         }
         return straf;
@@ -380,11 +381,9 @@
 
             for (let b = 0; b < aantalBanen; b++) {
                 let offset = b * 4;
-                // Echte teams zoals ze op het scherm komen (0&1 vs 2&3)
                 let t1 = kandidaat[offset].niveau + kandidaat[offset+1].niveau;
                 let t2 = kandidaat[offset+2].niveau + kandidaat[offset+3].niveau;
 
-                // Als het krachtsverschil groter is dan 1, keuren we de loting direct af
                 if (Math.abs(t1 - t2) > 1) {
                     strikteBalansOk = false;
                     break;
