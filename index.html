@@ -235,6 +235,7 @@
     </button>
 </div>
     <script>
+    // Jouw 7 vaste basisleden met hun exacte speelsterktes
     const basisSpelers = [
         { id: 1, naam: "Alexander", niveau: 6, actief: true },
         { id: 2, naam: "Rintje", niveau: 7, actief: true },
@@ -282,17 +283,17 @@
             if (speler.actief) aantalActief++;
             const liToss = document.createElement('li');
             liToss.className = 'player-item';
-            liToss.innerHTML = `<input type="checkbox" class="checkbox-custom" ${speler.actief ? 'checked' : ''} onchange="toggleSpeler(${speler.id})"><div class="player-info"><span><strong>${speler.naam}</strong></span><span class="level-badge">Sterkte ${speler.niveau}</span></div>`;
+            liToss.innerHTML = `<input type="checkbox" class="checkbox-custom" ${speler.actief ? 'checked' : ''} onchange="toggleSpeler(${speler.id})"><div class="player-info"><span class="player-name">${speler.naam}</span><span class="level-badge">St. ${speler.niveau}</span></div>`;
             tossUi.appendChild(liToss);
 
             const liManage = document.createElement('li');
             liManage.className = 'player-item';
-            liManage.innerHTML = `<div class="player-info"><span><strong>${speler.naam}</strong></span><div><select style="padding:5px; font-size:13px;" onchange="wijzigSterkte(${speler.id}, this.value)"><option value="5" ${speler.niveau===5?'selected':''}>St. 5</option><option value="6" ${speler.niveau===6?'selected':''}>St. 6</option><option value="7" ${speler.niveau===7?'selected':''}>St. 7</option><option value="8" ${speler.niveau===8?'selected':''}>St. 8</option><option value="9" ${speler.niveau===9?'selected':''}>St. 9</option></select><button class="remove-btn" style="margin-left: 5px;" onclick="verwijderSpeler(${speler.id})">X</button></div></div>`;
+            liManage.innerHTML = `<div class="player-info"><span class="player-name">${speler.naam}</span><div><select style="padding:6px 10px; font-size:14px; background:#334155; border:none; margin-right:5px; color:white; border-radius:6px;" onchange="wijzigSterkte(${speler.id}, this.value)"><option value="5" ${speler.niveau===5?'selected':''}>St. 5</option><option value="6" ${speler.niveau===6?'selected':''}>St. 6</option><option value="7" ${speler.niveau===7?'selected':''}>St. 7</option><option value="8" ${speler.niveau===8?'selected':''}>St. 8</option><option value="9" ${speler.niveau===9?'selected':''}>St. 9</option></select><button class="remove-btn" onclick="verwijderSpeler(${speler.id})">X</button></div></div>`;
             manageUi.appendChild(liManage);
         });
         const countDiv = document.getElementById('player-count');
         countDiv.textContent = `Aanwezig geselecteerd: ${aantalActief} speler(s)`;
-        countDiv.style.color = (aantalActief === 4 || aantalActief === 8) ? '#27ae60' : '#d35400';
+        countDiv.style.color = (aantalActief === 4 || aantalActief === 8) ? 'var(--tennis-neon)' : 'var(--accent-red)';
     }
 
     function toggleSpeler(id) {
@@ -320,8 +321,7 @@
             spelers = spelers.filter(s => s.id !== id);
             slaDataOp(); updateSpelersLijst();
         }
-    }
-         function initialiseerGeschiedenis(alleSpelers) {
+    } function initialiseerGeschiedenis(alleSpelers) {
         alleSpelers.forEach(s1 => {
             if (!geschiedenisMatrix[s1.naam]) geschiedenisMatrix[s1.naam] = {};
             alleSpelers.forEach(s2 => {
@@ -343,8 +343,15 @@
             straf += (geschiedenisMatrix[p2.naam]?.[p3.naam] || 0);
             straf += (geschiedenisMatrix[p2.naam]?.[p4.naam] || 0);
         }
-        controleerMatch(schema, schema, schema, schema);
-        if (banenAantal === 2) controleerMatch(schema, schema, schema, schema);
+        for (let b = 0; b < banenAantal; b++) {
+            let offset = b * 4;
+            registreer(schema[offset], schema[offset+1]);
+            registreer(schema[offset+2], schema[offset+3]);
+            registreer(schema[offset], schema[offset+2]);
+            registreer(schema[offset], schema[offset+3]);
+            registreer(schema[offset+1], schema[offset+2]);
+            registreer(schema[offset+1], schema[offset+3]);
+        }
         return straf;
     }
 
@@ -353,8 +360,8 @@
         let aantalAanwezig = actieveSpelers.length;
         if (aantalAanwezig === 0) { alert("Vink eerst aan wie er aanwezig zijn!"); return; }
 
-        let benodigdeSpelers = aantalAanwezig <= 4 ? 4 : 8;
-        let aantalBanen = benodigdeSpelers === 4 ? 1 : 2;
+        let aantalBanen = aantalAanwezig <= 4 ? 1 : 2;
+        let benodigdeSpelers = aantalBanen * 4;
         let gastenToegevoegd = 0; let tossPoule = [...actieveSpelers];
 
         while (tossPoule.length < benodigdeSpelers) {
@@ -363,33 +370,73 @@
         }
 
         initialiseerGeschiedenis(tossPoule);
-        tossPoule.sort((a, b) => a.niveau - b.niveau);
-        let besteSchema = null; let laagsteStraf = Infinity;
+        
+        let besteSchema = null; 
+        let laagsteStraf = Infinity;
 
-        for (let i = 0; i < 200; i++) {
+        for (let i = 0; i < 2000; i++) {
             let kandidaat = [...tossPoule];
             for (let j = kandidaat.length - 1; j > 0; j--) {
                 const k = Math.floor(Math.random() * (j + 1));
                 [kandidaat[j], kandidaat[k]] = [kandidaat[k], kandidaat[j]];
             }
-            let strafscore = berekenSchemaStrafpunten(kandidaat, aantalBanen);
-            if (strafscore < laagsteStraf) { laagsteStraf = strafscore; besteSchema = kandidaat; }
+
+            let tijdelijkSchema = [];
+            let sterkteCheckGeslaagd = true;
+
+            for (let b = 0; b < aantalBanen; b++) {
+                let offset = b * 4;
+                let vierSpelers = [kandidaat[offset], kandidaat[offset+1], kandidaat[offset+2], kandidaat[offset+3]];
+                
+                vierSpelers.sort((a, b) => a.niveau - b.niveau);
+                
+                let t1_sterkte = vierSpelers[0].niveau + vierSpelers[3].niveau;
+                let t2_sterkte = vierSpelers[1].niveau + vierSpelers[2].niveau;
+
+                if (Math.abs(t1_sterkte - t2_sterkte) > 1) {
+                    sterkteCheckGeslaagd = false;
+                    break;
+                }
+
+                tijdelijkSchema.push(vierSpelers[0], vierSpelers[3], vierSpelers[1], vierSpelers[2]);
+            }
+
+            if (!sterkteCheckGeslaagd) continue;
+
+            if (aantalBanen === 2) {
+                let baan1_totaal = tijdelijkSchema[0].niveau + tijdelijkSchema[1].niveau + tijdelijkSchema[2].niveau + tijdelijkSchema[3].niveau;
+                let baan2_totaal = tijdelijkSchema[4].niveau + tijdelijkSchema[5].niveau + tijdelijkSchema[6].niveau + tijdelijkSchema[7].niveau;
+                if (Math.abs(baan1_totaal - baan2_totaal) > 3) continue;
+            }
+
+            let strafscore = berekenSchemaStrafpunten(tijdelijkSchema, aantalBanen);
+            if (strafscore < laagsteStraf) { 
+                laagsteStraf = strafscore; 
+                besteSchema = tijdelijkSchema; 
+            }
+        }
+
+        if (!besteSchema) {
+            besteSchema = [...tossPoule];
+            besteSchema.sort((a, b) => a.niveau - b.niveau);
         }
 
         updateGeschiedenis(besteSchema, aantalBanen); rondeNummer++; slaDataOp();
-        
-        // Update de tekst in de overlay pop-up
         document.getElementById('overlay-ronde-teller').textContent = `Ronde ${rondeNummer}`;
 
-        let gastMelding = '';
-        let indelingHtml = gastMelding;
-        
-        indelingHtml += `<div class="court-title">Baan 1</div><div class="match-box"><strong>${besteSchema[0].naam} (st. ${besteSchema[0].niveau}) & ${besteSchema[1].naam} (st. ${besteSchema[1].niveau})</strong><br><span class="vs">VS</span><br><strong>${besteSchema[2].naam} (st. ${besteSchema[2].niveau}) & ${besteSchema[3].naam} (st. ${besteSchema[3].niveau})</strong></div>`;
-        if (aantalBanen === 2) {
-            indelingHtml += `<div class="court-title">Baan 2</div><div class="match-box"><strong>${besteSchema[4].naam} (st. ${besteSchema[4].niveau}) & ${besteSchema[5].naam} (st. ${besteSchema[5].niveau})</strong><br><span class="vs">VS</span><br><strong>${besteSchema[6].naam} (st. ${besteSchema[6].niveau}) & ${besteSchema[7].naam} (st. ${besteSchema[7].niveau})</strong></div>`;
+        let indelingHtml = '';
+        for (let b = 0; b < aantalBanen; b++) {
+            let offset = b * 4;
+            indelingHtml += `
+                <div class="court-title">Baan ${b + 1}</div>
+                <div class="match-box">
+                    <strong>${besteSchema[offset].naam} (st. ${besteSchema[offset].niveau}) & ${besteSchema[offset+1].naam} (st. ${besteSchema[offset+1].niveau})</strong>
+                    <span class="vs">VS</span>
+                    <strong>${besteSchema[offset+2].naam} (st. ${besteSchema[offset+2].niveau}) & ${besteSchema[offset+3].naam} (st. ${besteSchema[offset+3].niveau})</strong>
+                </div>
+            `;
         }
         
-        // Stop de indeling in de overlay en toon het schermvullend
         document.getElementById('overlay-banen-container').innerHTML = indelingHtml;
         document.getElementById('result-screen').classList.add('active');
     }
@@ -397,16 +444,19 @@
     function updateGeschiedenis(schema, banenAantal) {
         function registreer(p1, p2) {
             if (!p1 || !p2 || p1.naam === p2.naam) return;
-            if (!geschiedenisMatrix[p1.naam]) geschiedenisMatrix[p1.naam] = {};
+            if (!geschiedenisMatrix[p1.naam]) { geschiedenisMatrix[p1.naam] = {}; }
             geschiedenisMatrix[p1.naam][p2.naam] = (geschiedenisMatrix[p1.naam][p2.naam] || 0) + 1;
-            if (!geschiedenisMatrix[p2.naam]) geschiedenisMatrix[p2.naam] = {};
+            if (!geschiedenisMatrix[p2.naam]) { geschiedenisMatrix[p2.naam] = {}; }
             geschiedenisMatrix[p2.naam][p1.naam] = (geschiedenisMatrix[p2.naam][p1.naam] || 0) + 1;
         }
-        registreer(schema[0], schema[1]); registreer(schema[0], schema[2]); registreer(schema[0], schema[3]);
-        registreer(schema[1], schema[2]); registreer(schema[1], schema[3]); registreer(schema[2], schema[3]);
-        if (banenAantal === 2) {
-            registreer(schema[4], schema[5]); registreer(schema[4], schema[6]); registreer(schema[4], schema[7]);
-            registreer(schema[5], schema[6]); registreer(schema[5], schema[7]); registreer(schema[6], schema[7]);
+        for (let b = 0; b < banenAantal; b++) {
+            let offset = b * 4;
+            registreer(schema[offset], schema[offset+1]);
+            registreer(schema[offset+2], schema[offset+3]);
+            registreer(schema[offset], schema[offset+2]);
+            registreer(schema[offset], schema[offset+3]);
+            registreer(schema[offset+1], schema[offset+2]);
+            registreer(schema[offset+1], schema[offset+3]);
         }
     }
 
