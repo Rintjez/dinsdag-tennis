@@ -2,359 +2,269 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
-<title>Tennis loting</title>
-
+<title>Dinsdag Tennis</title>
 <style>
-  body {
-    margin: 0;
+body {
+    font-family: Arial, sans-serif;
     padding: 20px;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-    background: #f7f7f7;
-    color: #222;
-  }
-
-  h1 { font-size: 1.6rem; margin-bottom: 10px; }
-
-  section {
-    background: white;
-    padding: 16px;
-    margin-bottom: 16px;
-    border-radius: 10px;
-    border: 1px solid #e3e3e3;
-  }
-
-  button {
+    background: #f4f4f4;
+}
+h1, h2, h3 {
+    margin: 5px 0 10px 0;
+}
+section {
+    margin-bottom: 20px;
+    padding: 10px;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 0 4px rgba(0,0,0,0.1);
+}
+button {
     padding: 8px 14px;
-    border-radius: 8px;
-    border: none;
-    background: #2ecc71;
-    color: white;
+    margin: 4px;
+    font-size: 14px;
     cursor: pointer;
-    margin-right: 6px;
-  }
-
-  button.secondary {
-    background: #e3e3e3;
-    color: #222;
-  }
-
-  .players {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .player-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .team-card {
+}
+label {
+    display: block;
+    margin: 3px 0;
+}
+.team-box {
+    display: inline-block;
+    margin: 6px;
     padding: 10px;
-    border-radius: 8px;
-    background: #e3e3e3;
-    margin-bottom: 8px;
-  }
-
-  .saved-item {
-    padding: 10px;
-    background: #f1f1f1;
-    border-radius: 8px;
-    margin-bottom: 10px;
-  }
+    border-radius: 50%;
+    background: #c7f36b;
+    min-width: 80px;
+    text-align: center;
+    font-weight: bold;
+}
+.team-row {
+    margin: 8px 0;
+}
+#teams, #historie {
+    margin-top: 10px;
+}
+.small {
+    font-size: 12px;
+    color: #555;
+}
 </style>
 </head>
-
 <body>
 
-<h1>Tennis loting</h1>
+<h1>Dinsdag Tennis Loting</h1>
 
 <section>
-  <h2>Aanwezigheid</h2>
-  <div class="players" id="presence-list"></div>
-  <div id="presence-info"></div>
+    <h2>Stap 3 – Aanwezige spelers</h2>
+    <p class="small">Vink aan wie er zijn. Gasten worden automatisch toegevoegd indien nodig.</p>
+    <div id="spelers"></div>
 </section>
 
 <section>
-  <h2>Loting</h2>
-  <button onclick="makeLoting('strength')">Speelsterkte</button>
-  <button class="secondary" onclick="makeLoting('random')">Willekeurig</button>
-  <div id="loting-error" style="color:#c0392b; margin-top:6px;"></div>
+    <h2>Stap 2 – Loting type</h2>
+    <label>
+        <input type="radio" name="mode" value="a" checked>
+        A-teams (sterk met zwak)
+    </label>
+    <label>
+        <input type="radio" name="mode" value="random">
+        Willekeurig
+    </label>
 </section>
 
 <section>
-  <h2>Teams</h2>
-  <div id="teams-container"></div>
+    <h2>Stap 1 – Loting uitvoeren</h2>
+    <button onclick="loten()">Loten</button>
+    <button onclick="toonHistorie()">Historie tonen</button>
+    <div id="teams"></div>
 </section>
 
 <section>
-  <h2>Historie</h2>
-  <div id="saved-lotings"></div>
+    <h2>Historie</h2>
+    <div id="historie"></div>
 </section>
-
-<section>
-  <h2>Spelersbeheer</h2>
-  <button onclick="openAddPlayer()">Nieuwe speler</button>
-  <button class="secondary" onclick="openRemovePlayer()">Verwijderen</button>
-  <button class="secondary" onclick="openEditStrength()">Speelsterkte wijzigen</button>
-</section>
-
-<!-- Modal -->
-<div id="modal-bg" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.2);"></div>
-<div id="modal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
-background:white; padding:20px; border-radius:10px; width:90%; max-width:350px;"></div>
 
 <script>
-let players = [
-  { id:'A', name:'Alex', strength:6, fixed:true },
-  { id:'B', name:'Rintje', strength:7, fixed:true },
-  { id:'C', name:'Douwe', strength:6, fixed:true },
-  { id:'D', name:'Giep', strength:6, fixed:true },
-  { id:'E', name:'Lammert', strength:8, fixed:true },
-  { id:'F', name:'Eddy', strength:8, fixed:true },
-  { id:'G', name:'Durkh', strength:8, fixed:true },
-  { id:'H', name:'Gast1', strength:7, fixed:false },
-  { id:'I', name:'Gast2', strength:7, fixed:false },
-  { id:'J', name:'Gast3', strength:7, fixed:false }
+// --- SPELERS + STERKTES ---
+const BASIS_SPELERS = [
+    { naam: "Alex",    sterkte: 6 },
+    { naam: "Rintje",  sterkte: 7 },
+    { naam: "Douwe",   sterkte: 7 },
+    { naam: "Giep",    sterkte: 6 },
+    { naam: "Lammert", sterkte: 8 },
+    { naam: "Eddy",    sterkte: 8 },
+    { naam: "Durkh",   sterkte: 7 }
 ];
 
-function initPresenceUI() {
-  const container = document.getElementById('presence-list');
-  container.innerHTML = '';
-  players.forEach(p => {
-    if (!p.fixed) return;
-    const div = document.createElement('div');
-    div.className = 'player-item';
-    const cb = document.createElement('input');
-    cb.type = 'checkbox';
-    cb.id = 'chk_' + p.id;
-    cb.onchange = updatePresenceInfo;
-    const label = document.createElement('label');
-    label.textContent = `${p.id} — ${p.name} (sterkte ${p.strength})`;
-    div.appendChild(cb);
-    div.appendChild(label);
-    container.appendChild(div);
-  });
+const GASTEN = [
+    { naam: "Gast1", sterkte: 7 },
+    { naam: "Gast2", sterkte: 7 },
+    { naam: "Gast3", sterkte: 7 }
+];
+
+// --- UI: SPELERS TONEN ---
+function toonSpelers() {
+    const div = document.getElementById("spelers");
+    div.innerHTML = "";
+    BASIS_SPELERS.forEach((speler, i) => {
+        div.innerHTML += `
+            <label>
+                <input type="checkbox" id="sp${i}">
+                ${speler.naam} (sterkte ${speler.sterkte})
+            </label>
+        `;
+    });
+}
+toonSpelers();
+
+// --- GAST LOGICA ---
+function voegGastenToe(aanwezige) {
+    const n = aanwezige.length;
+    let extra = [];
+
+    if (n >= 7) {
+        extra = [GASTEN[0]]; // Gast1
+    } else if (n === 6) {
+        extra = [GASTEN[0], GASTEN[1]]; // Gast1 + Gast2
+    } else if (n === 5) {
+        extra = [GASTEN[0], GASTEN[1], GASTEN[2]]; // Gast1 + Gast2 + Gast3
+    } else if (n === 4) {
+        extra = []; // niets
+    } else if (n === 3) {
+        extra = [GASTEN[0]]; // Gast1
+    } else if (n === 2) {
+        extra = [GASTEN[0], GASTEN[1]]; // Gast1 + Gast2
+    } else if (n === 1) {
+        extra = [GASTEN[0], GASTEN[1], GASTEN[2]]; // Gast1 + Gast2 + Gast3
+    } else {
+        alert("Te weinig spelers (0).");
+        return [];
+    }
+
+    return aanwezige.concat(extra);
 }
 
-function getSelectedFixedPlayers() {
-  return players.filter(p => p.fixed && document.getElementById('chk_' + p.id)?.checked).map(p => p.id);
-}
-
-function autoGuests(n) {
-  if (n === 7) return ['H'];
-  if (n === 6) return ['H','I'];
-  if (n === 5) return ['H','I','J'];
-  if (n === 4) return [];
-  return null;
-}
-
-function updatePresenceInfo() {
-  const selected = getSelectedFixedPlayers();
-  const guests = autoGuests(selected.length);
-  const info = document.getElementById('presence-info');
-
-  if (guests === null) {
-    info.textContent = "Te weinig spelers.";
-    return;
-  }
-
-  const guestNames = guests.map(id => players.find(p => p.id === id).name);
-  info.textContent =
-    `Aanwezig: ${selected.join(', ')}. ` +
-    (guestNames.length ? `Gasten: ${guestNames.join(', ')}` : `Geen gasten nodig.`);
-}
-
-function pairStrongWeak(arr) {
-  const n = arr.length;
-  const result = [];
-  for (let i = 0; i < n/2; i++) {
-    result.push(arr[i]);
-    result.push(arr[n-1-i]);
-  }
-  return result;
-}
-
+// --- HULP: SHUFFLE ---
 function shuffle(arr) {
-  const a = arr.slice();
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
 }
 
-function makeLoting(mode) {
-  const errorEl = document.getElementById('loting-error');
-  errorEl.textContent = '';
-
-  const selectedFixed = getSelectedFixedPlayers();
-  const guests = autoGuests(selectedFixed.length);
-
-  if (guests === null) {
-    errorEl.textContent = "Te weinig spelers.";
-    renderTeams([]);
-    return;
-  }
-
-  const allIds = [...selectedFixed, ...guests];
-  let selectedPlayers = allIds.map(id => players.find(p => p.id === id));
-
-  if (mode === 'strength') {
-    selectedPlayers.sort((a,b)=>b.strength - a.strength);
-    selectedPlayers = pairStrongWeak(selectedPlayers);
-  } else {
-    selectedPlayers = shuffle(selectedPlayers);
-  }
-
-  const teams = [];
-  for (let i = 0; i < selectedPlayers.length; i += 2) {
-    teams.push([selectedPlayers[i], selectedPlayers[i+1]]);
-  }
-
-  renderTeams(teams);
-  saveLoting(teams, mode);
+// --- LOTING MODES ---
+function maakTeamsRandom(spelers) {
+    const mix = shuffle(spelers);
+    const teams = [];
+    for (let i = 0; i + 1 < mix.length; i += 2) {
+        teams.push([mix[i], mix[i+1]]);
+    }
+    return teams;
 }
 
-function renderTeams(teams) {
-  const container = document.getElementById('teams-container');
-  container.innerHTML = '';
-  teams.forEach((team, idx) => {
-    const div = document.createElement('div');
-    div.className = 'team-card';
-    div.textContent = `Team ${idx+1}: ${team.map(p=>p.name).join(' & ')}`;
-    container.appendChild(div);
-  });
+function maakTeamsA(spelers) {
+    // sorteer op sterkte
+    const sorted = spelers.slice().sort((a, b) => a.sterkte - b.sterkte);
+    const teams = [];
+    let i = 0;
+    let j = sorted.length - 1;
+    while (i < j) {
+        teams.push([sorted[i], sorted[j]]);
+        i++;
+        j--;
+    }
+    return teams;
 }
 
-function saveLoting(teams, mode) {
-  const timestamp = new Date().toLocaleString();
-  const entry = {
-    timestamp,
-    mode,
-    teams: teams.map(t => t.map(p => p.name))
-  };
-  const existing = JSON.parse(localStorage.getItem('lotingen') || '[]');
-  existing.push(entry);
-  localStorage.setItem('lotingen', JSON.stringify(existing));
-  showSavedLotings();
+// --- HISTORIE OPSLAG ---
+function saveHistorie(teams) {
+    const hist = JSON.parse(localStorage.getItem("historie") || "[]");
+    const entry = {
+        datum: new Date().toISOString(),
+        teams: teams.map(t => t.map(s => s.naam))
+    };
+    hist.push(entry);
+    localStorage.setItem("historie", JSON.stringify(hist));
 }
 
-function showSavedLotings() {
-  const container = document.getElementById('saved-lotings');
-  const data = JSON.parse(localStorage.getItem('lotingen') || '[]');
-
-  if (data.length === 0) {
-    container.innerHTML = "Geen lotingen opgeslagen.";
-    return;
-  }
-
-  let html = "";
-  data.forEach((loting, idx) => {
-    html += `
-      <div class="saved-item">
-        <b>Loting ${idx+1}</b><br>
-        Tijd: ${loting.timestamp}<br>
-        Methode: ${loting.mode}<br>
-        ${loting.teams.map((t,i)=>`Team ${i+1}: ${t.join(' & ')}`).join("<br>")}
-        <br><br>
-        <button class="secondary" onclick="deleteLoting(${idx})">Verwijderen</button>
-      </div>
-    `;
-  });
-
-  container.innerHTML = html;
+function toonHistorie() {
+    const hist = JSON.parse(localStorage.getItem("historie") || "[]");
+    const div = document.getElementById("historie");
+    if (hist.length === 0) {
+        div.innerHTML = "<p>Geen historie opgeslagen.</p>";
+        return;
+    }
+    let html = "";
+    hist.forEach((entry, idx) => {
+        html += `<div class="small"><b>Loting ${idx+1}</b> (${entry.datum})<br>`;
+        entry.teams.forEach((team, i) => {
+            html += `Team ${i+1}: ${team[0]} & ${team[1]}<br>`;
+        });
+        html += "</div><hr>";
+    });
+    div.innerHTML = html;
 }
 
-function deleteLoting(index) {
-  const data = JSON.parse(localStorage.getItem('lotingen') || '[]');
-  data.splice(index, 1);
-  localStorage.setItem('lotingen', JSON.stringify(data));
-  showSavedLotings();
+// --- TEAMS WEERGAVE (TENNNISBAL BLOKJES) ---
+function toonTeams(teams) {
+    const div = document.getElementById("teams");
+    if (!teams || teams.length === 0) {
+        div.innerHTML = "<p>Geen teams gemaakt.</p>";
+        return;
+    }
+    let html = "<h3>Teams</h3>";
+    teams.forEach((team, i) => {
+        html += `
+            <div class="team-row">
+                <span>Team ${i+1}:</span>
+                <span class="team-box">${team[0].naam}</span>
+                <span class="team-box">${team[1].naam}</span>
+            </div>
+        `;
+    });
+    div.innerHTML = html;
 }
 
-/* MODAL */
-function showModal(html) {
-  document.getElementById('modal').innerHTML = html;
-  document.getElementById('modal').style.display = 'block';
-  document.getElementById('modal-bg').style.display = 'block';
-}
-function closeModal() {
-  document.getElementById('modal').style.display = 'none';
-  document.getElementById('modal-bg').style.display = 'none';
-}
-document.getElementById('modal-bg').onclick = closeModal;
+// --- LOTING HOOFDFUNCTIE ---
+function loten() {
+    // 1. Aanwezige spelers verzamelen
+    let aanwezige = [];
+    BASIS_SPELERS.forEach((speler, i) => {
+        const cb = document.getElementById("sp"+i);
+        if (cb && cb.checked) {
+            aanwezige.push({ naam: speler.naam, sterkte: speler.sterkte });
+        }
+    });
 
-/* SPELERSBEHEER */
-function openAddPlayer() {
-  showModal(`
-    <h3>Nieuwe speler</h3>
-    <label>Naam:<br><input id="newName" style="width:100%;"></label><br><br>
-    <label>Sterkte:<br><input id="newStrength" type="number" min="1" max="10" style="width:100%;"></label><br><br>
-    <button onclick="addPlayer()">Opslaan</button>
-    <button class="secondary" onclick="closeModal()">Annuleren</button>
-  `);
-}
+    if (aanwezige.length === 0) {
+        alert("Geen spelers aangevinkt.");
+        return;
+    }
 
-function addPlayer() {
-  const name = document.getElementById('newName').value.trim();
-  const strength = parseInt(document.getElementById('newStrength').value);
-  if (!name || isNaN(strength)) return;
-  const id = String.fromCharCode(65 + players.length);
-  players.push({ id, name, strength, fixed:true });
-  initPresenceUI();
-  updatePresenceInfo();
-  closeModal();
-}
+    // 2. Gasten toevoegen volgens jouw logica
+    const metGasten = voegGastenToe(aanwezige);
+    if (metGasten.length === 0) return;
 
-function openRemovePlayer() {
-  const options = players.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-  showModal(`
-    <h3>Speler verwijderen</h3>
-    <select id="removeId" style="width:100%;">${options}</select><br><br>
-    <button onclick="removePlayer()">Verwijderen</button>
-    <button class="secondary" onclick="closeModal()">Annuleren</button>
-  `);
-}
+    // 3. Mode bepalen (A-teams of random)
+    const mode = document.querySelector('input[name="mode"]:checked').value;
 
-function removePlayer() {
-  const id = document.getElementById('removeId').value;
-  const idx = players.findIndex(p => p.id === id);
-  if (idx >= 0) players.splice(idx, 1);
-  initPresenceUI();
-  updatePresenceInfo();
-  closeModal();
-}
+    let teams;
+    if (mode === "a") {
+        teams = maakTeamsA(metGasten);
+    } else {
+        teams = maakTeamsRandom(metGasten);
+    }
 
-function openEditStrength() {
-  const options = players.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-  showModal(`
-    <h3>Sterkte wijzigen</h3>
-    <select id="editId" style="width:100%;">${options}</select><br><br>
-    <input id="editStrength" type="number" min="1" max="10" style="width:100%;"><br><br>
-    <button onclick="editStrength()">Opslaan</button>
-    <button class="secondary" onclick="closeModal()">Annuleren</button>
-  `);
-}
+    // 4. Teams tonen in tennisbal-blokjes
+    toonTeams(teams);
 
-function editStrength() {
-  const id = document.getElementById('editId').value;
-  const strength = parseInt(document.getElementById('editStrength').value);
-  if (isNaN(strength)) return;
-  const p = players.find(pl => pl.id === id);
-  if (p) p.strength = strength;
-  initPresenceUI();
-  updatePresenceInfo();
-  closeModal();
+    // 5. Historie opslaan
+    saveHistorie(teams);
 }
-
-/* INIT */
-initPresenceUI();
-updatePresenceInfo();
-showSavedLotings();
 </script>
 
 </body>
 </html>
-
