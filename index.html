@@ -1,406 +1,360 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8">
-<title>Dinsdag Tennis</title>
-
-<!-- iPhone / PWA achtig -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="apple-touch-icon" href="tennis-icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-
-<style>
-body {
-    font-family: Arial, sans-serif;
-    padding: 20px;
-    background: #f4f4f4;
-}
-h1, h2, h3 {
-    margin: 5px 0 10px 0;
-}
-section {
-    margin-bottom: 20px;
-    padding: 10px;
-    background: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 0 4px rgba(0,0,0,0.1);
-}
-button {
-    padding: 8px 14px;
-    margin: 4px;
-    font-size: 14px;
-    cursor: pointer;
-}
-label {
-    display: block;
-    margin: 3px 0;
-}
-.team-box {
-    display: inline-block;
-    margin: 6px;
-    padding: 10px;
-    border-radius: 50%;
-    min-width: 80px;
-    text-align: center;
-    font-weight: bold;
-}
-.team-row {
-    margin: 8px 0;
-}
-#teams, #historie {
-    margin-top: 10px;
-}
-.small {
-    font-size: 12px;
-    color: #555;
-}
-input[type="number"] {
-    width: 50px;
-}
-.player-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 4px 0;
-}
-.player-row button {
-    padding: 4px 8px;
-}
-.str-6 { background: #b3e5fc; }
-.str-7 { background: #c8e6c9; }
-.str-8 { background: #ffe082; }
-.str-default { background: #e0e0e0; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Tennis Dubbel Toss</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TennisToss">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            box-sizing: border-box;
+        }
+        h1, h2, h3 {
+            text-align: center;
+            color: #2c3e50;
+            margin-top: 10px;
+        }
+        .court-title {
+            color: #27ae60;
+            border-bottom: 2px solid #27ae60;
+            padding-bottom: 5px;
+            margin-top: 25px;
+        }
+        .setup-section {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #e8e8e8;
+        }
+        .form-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        input[type="text"], select {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+        input[type="text"] { flex: 2; }
+        select { flex: 1; }
+        .add-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 15px;
+        }
+        .player-list {
+            list-style: none;
+            padding: 0;
+            max-height: 250px;
+            overflow-y: auto;
+            margin: 0;
+        }
+        .player-item {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            padding: 10px;
+            margin-bottom: 6px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+        .player-info {
+            flex-grow: 1;
+            margin-left: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .checkbox-custom {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+        }
+        .remove-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 4px 10px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        button.main-btn {
+            width: 100%;
+            padding: 14px;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 10px;
+            -webkit-tap-highlight-color: transparent;
+        }
+        button.main-btn:hover { background-color: #219653; }
+        .match-box {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            text-align: center;
+            font-size: 17px;
+        }
+        .vs { font-weight: bold; color: #e74c3c; margin: 0 8px; }
+        .level-badge {
+            font-size: 11px;
+            background: #e1e1e1;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+        .notice-box {
+            font-size: 13px;
+            color: #7f8c8d;
+            text-align: center;
+            margin-top: 5px;
+            font-style: italic;
+        }
+    </style>
 </head>
 <body>
-
-<h1>Dinsdag Tennis Loting</h1>
-
-<section>
-    <h2>Spelersbeheer</h2>
-    <div id="beheer"></div>
-
-    <h3>Nieuwe speler toevoegen</h3>
-    <input id="newName" placeholder="Naam">
-    <input id="newStrength" type="number" min="1" max="10" value="7">
-    <button onclick="addPlayer()">Toevoegen</button>
-</section>
-
-<section>
-    <h2>Stap 3 – Aanwezige spelers</h2>
-    <p class="small">Vink aan wie er zijn. Gasten worden automatisch toegevoegd indien nodig.</p>
-    <div id="spelers"></div>
-</section>
-
-<section>
-    <h2>Stap 2 – Loting type</h2>
-    <label>
-        <input type="radio" name="mode" value="a" checked>
-        A-teams (sterk met zwak)
-    </label>
-    <label>
-        <input type="radio" name="mode" value="random">
-        Willekeurig
-    </label>
-</section>
-
-<section>
-    <h2>Stap 1 – Loting uitvoeren</h2>
-    <button onclick="loten()">Loten</button>
-    <button onclick="toonHistorie()">Historie tonen</button>
-    <button onclick="exportHistorie()">Export historie (.txt)</button>
-    <div id="teams"></div>
-</section>
-
-<section>
-    <h2>Historie</h2>
-    <div id="historie"></div>
-</section>
-
+<div class="container">
+    <h1>🎾 Slimme Tennis Toss</h1>
+    <div class="setup-section">
+        <h3>Spelers (Vink aan wie er zijn)</h3>
+        <div class="form-group">
+            <input type="text" id="new-player-name" placeholder="Naam extra speler...">
+            <select id="new-player-level">
+                <option value="5">Sterkte 5</option>
+                <option value="6">Sterkte 6</option>
+                <option value="7" selected>Sterkte 7</option>
+                <option value="8">Sterkte 8</option>
+                <option value="9">Sterkte 9</option>
+            </select>
+            <button class="add-btn" onclick="voegSpelerToe()">+</button>
+        </div>
+        <ul class="player-list" id="players-ui"></ul>
+        <div id="player-count" style="font-weight: bold; margin-top: 10px; font-size: 14px; text-align: center; color: #2c3e50;">
+            Aantal aanwezig: 0
+        </div>
+        <div class="notice-box">Minder dan 4 of 8 spelers? De app vult automatisch gasten aan!</div>
+    </div>
+    <button class="main-btn" onclick="genereerOptimaleBanen()">Genereer Volgende Ronde</button>
+    <button class="main-btn" style="background-color: #7f8c8d; padding: 10px;" onclick="resetHistorie()">Wis Geheugen/Rondes</button>
+    <div id="ronde-teller" style="text-align:center; font-weight:bold; margin-top:10px; font-size: 18px; color: #27ae60;"></div>
+    <div id="banen-container"></div>
+</div>
 <script>
-// --- INITIELE SPELERS (fallback) ---
-const INIT_SPELERS = [
-    { naam: "Alex", sterkte: 6 },
-    { naam: "Rintje", sterkte: 7 },
-    { naam: "Douwe", sterkte: 7 },
-    { naam: "Giep", sterkte: 6 },
-    { naam: "Lammert", sterkte: 8 },
-    { naam: "Eddy", sterkte: 8 },
-    { naam: "Durkh", sterkte: 7 }
-];
-
-const GASTEN = [
-    { naam: "Gast1", sterkte: 7 },
-    { naam: "Gast2", sterkte: 7 },
-    { naam: "Gast3", sterkte: 7 }
-];
-
-let spelers = loadSpelers();
-let laatsteTeams = []; // voor geen herhaling
-
-function loadSpelers() {
-    const s = localStorage.getItem("spelers");
-    if (s) {
-        try { return JSON.parse(s); } catch(e) {}
+    const basisSpelers = [
+        { id: 1, naam: "Alexander", niveau: 6, actief: true },
+        { id: 2, naam: "Rintje", niveau: 7, actief: true },
+        { id: 3, naam: "Douwe", niveau: 6, actief: true },
+        { id: 4, naam: "Giep", niveau: 6, actief: true },
+        { id: 5, naam: "Lammert", niveau: 8, actief: true },
+        { id: 6, naam: "Eddy", niveau: 8, actief: true },
+        { id: 7, naam: "Durk", niveau: 8, actief: true }
+    ];
+    let spelers = JSON.parse(localStorage.getItem('tennis_spelers')) || basisSpelers;
+    let geschiedenisMatrix = JSON.parse(localStorage.getItem('tennis_historie')) || {};
+    let rondeNummer = parseInt(localStorage.getItem('tennis_ronde')) || 0;
+    function slaDataOp() {
+        localStorage.setItem('tennis_spelers', JSON.stringify(spelers));
+        localStorage.setItem('tennis_historie', JSON.stringify(geschiedenisMatrix));
+        localStorage.setItem('tennis_ronde', rondeNummer.toString());
     }
-    return INIT_SPELERS.slice();
-}
-
-function saveSpelers() {
-    localStorage.setItem("spelers", JSON.stringify(spelers));
-}
-
-// --- SPELERS BEHEER SCHERM ---
-function toonBeheer() {
-    const div = document.getElementById("beheer");
-    div.innerHTML = "";
-
-    spelers.forEach((sp, i) => {
-        div.innerHTML += `
-            <div class="player-row">
-                <span>${sp.naam}</span>
-                <input type="number" min="1" max="10" value="${sp.sterkte}"
-                    onchange="updateStrength(${i}, this.value)">
-                <button onclick="removePlayer(${i})">Verwijder</button>
-            </div>
-        `;
-    });
-}
-toonBeheer();
-
-// --- SPELERS TOEVOEGEN ---
-function addPlayer() {
-    const name = document.getElementById("newName").value.trim();
-    const strength = parseInt(document.getElementById("newStrength").value);
-
-    if (!name) {
-        alert("Naam ontbreekt.");
-        return;
-    }
-
-    spelers.push({ naam: name, sterkte: strength });
-    saveSpelers();
-    toonBeheer();
-    toonSpelers();
-}
-
-// --- SPELERS VERWIJDEREN ---
-function removePlayer(i) {
-    spelers.splice(i, 1);
-    saveSpelers();
-    toonBeheer();
-    toonSpelers();
-}
-
-// --- SPEELSTERKTE AANPASSEN ---
-function updateStrength(i, val) {
-    spelers[i].sterkte = parseInt(val);
-    saveSpelers();
-    toonBeheer();
-    toonSpelers();
-}
-
-// --- AANWEZIGHEID SCHERM ---
-function toonSpelers() {
-    const div = document.getElementById("spelers");
-    div.innerHTML = "";
-    spelers.forEach((sp, i) => {
-        div.innerHTML += `
-            <label>
-                <input type="checkbox" id="sp${i}">
-                ${sp.naam} (sterkte ${sp.sterkte})
-            </label>
-        `;
-    });
-}
-toonSpelers();
-
-// --- GAST LOGICA (ALTIJD TOT 4 SPELERS) ---
-function voegGastenToe(aanwezige) {
-    const n = aanwezige.length;
-    let extra = [];
-
-    if (n >= 7) extra = [GASTEN[0]];
-    else if (n === 6) extra = [GASTEN[0], GASTEN[1]];
-    else if (n === 5) extra = [GASTEN[0], GASTEN[1], GASTEN[2]];
-    else if (n === 4) extra = [];
-    else if (n === 3) extra = [GASTEN[0]];
-    else if (n === 2) extra = [GASTEN[0], GASTEN[1]];
-    else if (n === 1) extra = [GASTEN[0], GASTEN[1], GASTEN[2]];
-    else {
-        alert("Te weinig spelers (0).");
-        return [];
-    }
-
-    return aanwezige.concat(extra);
-}
-
-// --- SHUFFLE ---
-function shuffle(arr) {
-    const a = arr.slice();
-    for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-}
-
-// --- LOTING MODES ---
-function maakTeamsRandom(spelers) {
-    const mix = shuffle(spelers);
-    const teams = [];
-    for (let i = 0; i + 1 < mix.length; i += 2) {
-        teams.push([mix[i], mix[i+1]]);
-    }
-    return teams;
-}
-
-function maakTeamsA(spelers) {
-    const sorted = spelers.slice().sort((a, b) => a.sterkte - b.sterkte);
-    const teams = [];
-    let i = 0;
-    let j = sorted.length - 1;
-    while (i < j) {
-        teams.push([sorted[i], sorted[j]]);
-        i++;
-        j--;
-    }
-    return teams;
-}
-
-// --- GEEN HERHALING VAN TEAMS ---
-function teamsGelijk(t1, t2) {
-    return (
-        (t1[0].naam === t2[0].naam && t1[1].naam === t2[1].naam) ||
-        (t1[0].naam === t2[1].naam && t1[1].naam === t2[0].naam)
-    );
-}
-
-function setIsHerhaling(teams) {
-    if (!laatsteTeams || laatsteTeams.length === 0) return false;
-    if (teams.length !== laatsteTeams.length) return false;
-    for (let i = 0; i < teams.length; i++) {
-        if (!teamsGelijk(teams[i], laatsteTeams[i])) return false;
-    }
-    return true;
-}
-
-// --- HISTORIE OPSLAG ---
-function saveHistorie(teams) {
-    const hist = JSON.parse(localStorage.getItem("historie") || "[]");
-    const entry = {
-        datum: new Date().toISOString(),
-        teams: teams.map(t => t.map(s => s.naam))
-    };
-    hist.push(entry);
-    localStorage.setItem("historie", JSON.stringify(hist));
-}
-
-function toonHistorie() {
-    const hist = JSON.parse(localStorage.getItem("historie") || "[]");
-    const div = document.getElementById("historie");
-    if (hist.length === 0) {
-        div.innerHTML = "<p>Geen historie opgeslagen.</p>";
-        return;
-    }
-    let html = "";
-    hist.forEach((entry, idx) => {
-        html += `<div class="small"><b>Loting ${idx+1}</b> (${entry.datum})<br>`;
-        entry.teams.forEach((team, i) => {
-            html += `Team ${i+1}: ${team[0]} & ${team[1]}<br>`;
+    function updateSpelersLijst() {
+        const ui = document.getElementById('players-ui');
+        ui.innerHTML = '';
+        let aantalActief = 0;
+        spelers.forEach(speler => {
+            if (speler.actief) aantalActief++;
+            const li = document.createElement('li');
+            li.className = 'player-item';
+            li.innerHTML = `
+                <input type="checkbox" class="checkbox-custom" ${speler.actief ? 'checked' : ''} onchange="toggleSpeler(${speler.id})">
+                <div class="player-info">
+                    <span><strong>${speler.naam}</strong></span>
+                    <span class="level-badge">Sterkte ${speler.niveau}</span>
+                    <button class="remove-btn" onclick="verwijderSpeler(${speler.id})">X</button>
+                </div>
+            `;
+            ui.appendChild(li);
         });
-        html += "</div><hr>";
-    });
-    div.innerHTML = html;
-}
-
-// --- EXPORT HISTORIE ALS TXT ---
-function exportHistorie() {
-    const hist = JSON.parse(localStorage.getItem("historie") || "[]");
-    if (hist.length === 0) {
-        alert("Geen historie om te exporteren.");
-        return;
+        const countDiv = document.getElementById('player-count');
+        countDiv.textContent = `Aanwezig geselecteerd: ${aantalActief} speler(s)`;
+        countDiv.style.color = (aantalActief === 4 || aantalActief === 8) ? '#27ae60' : '#d35400';
     }
-    let txt = "";
-    hist.forEach((entry, idx) => {
-        txt += `Loting ${idx+1} (${entry.datum})\n`;
-        entry.teams.forEach((team, i) => {
-            txt += `  Team ${i+1}: ${team[0]} & ${team[1]}\n`;
+    function toggleSpeler(id) {
+        const speler = spelers.find(s => s.id === id);
+        if (speler) speler.actief = !speler.actief;
+        slaDataOp();
+        updateSpelersLijst();
+    }
+    function voegSpelerToe() {
+        const nameInput = document.getElementById('new-player-name');
+        const levelInput = document.getElementById('new-player-level');
+        if (!nameInput.value.trim()) return;
+        const nieuweSpeler = {
+            id: Date.now(),
+            naam: nameInput.value.trim(),
+            niveau: parseInt(levelInput.value),
+            actief: true
+        };
+        spelers.push(nieuweSpeler);
+        nameInput.value = '';
+        slaDataOp();
+        updateSpelersLijst();
+    }
+    function verwijderSpeler(id) {
+        spelers = spelers.filter(s => s.id !== id);
+        slaDataOp();
+        updateSpelersLijst();
+    }
+    function initialiseerGeschiedenis(alleSpelers) {
+        alleSpelers.forEach(s1 => {
+            if (!geschiedenisMatrix[s1.naam]) geschiedenisMatrix[s1.naam] = {};
+            alleSpelers.forEach(s2 => {
+                if (s1.naam !== s2.naam && geschiedenisMatrix[s1.naam][s2.naam] === undefined) {
+                    geschiedenisMatrix[s1.naam][s2.naam] = 0;
+                }
+            });
         });
-        txt += "\n";
-    });
-
-    const blob = new Blob([txt], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "dinsdag-tennis-historie.txt";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-}
-
-// --- KLEUR PER STERKTE ---
-function strengthClass(s) {
-    if (s === 6) return "str-6";
-    if (s === 7) return "str-7";
-    if (s === 8) return "str-8";
-    return "str-default";
-}
-
-// --- TEAMS WEERGAVE (TENNISBAL BLOKJES) ---
-function toonTeams(teams) {
-    const div = document.getElementById("teams");
-    let html = "<h3>Teams</h3>";
-    teams.forEach((team, i) => {
-        html += `
-            <div class="team-row">
-                <span>Team ${i+1}:</span>
-                <span class="team-box ${strengthClass(team[0].sterkte)}">${team[0].naam}</span>
-                <span class="team-box ${strengthClass(team[1].sterkte)}">${team[1].naam}</span>
-            </div>
-        `;
-    });
-    div.innerHTML = html;
-}
-
-// --- LOTING ---
-function loten() {
-    let aanwezige = [];
-
-    spelers.forEach((sp, i) => {
-        const cb = document.getElementById("sp"+i);
-        if (cb && cb.checked) {
-            aanwezige.push({ naam: sp.naam, sterkte: sp.sterkte });
+    }
+    function berekenSchemaStrafpunten(schema, banenAantal) {
+        let straf = 0;
+        function controleerMatch(p1, p2, p3, p4) {
+            if(!p1 || !p2 || !p3 || !p4) return;
+            straf += (geschiedenisMatrix[p1.naam]?.[p2.naam] || 0) * 3;
+            straf += (geschiedenisMatrix[p3.naam]?.[p4.naam] || 0) * 3;
+            straf += (geschiedenisMatrix[p1.naam]?.[p3.naam] || 0);
+            straf += (geschiedenisMatrix[p1.naam]?.[p4.naam] || 0);
+            straf += (geschiedenisMatrix[p2.naam]?.[p3.naam] || 0);
+            straf += (geschiedenisMatrix[p2.naam]?.[p4.naam] || 0);
         }
-    });
-
-    if (aanwezige.length === 0) {
-        alert("Geen spelers aangevinkt.");
-        return;
+        controleerMatch(schema, schema, schema, schema);
+        if (banenAantal === 2) {
+            controleerMatch(schema, schema, schema, schema);
+        }
+        return straf;
     }
-
-    const metGasten = voegGastenToe(aanwezige);
-    if (metGasten.length === 0) return;
-
-    const mode = document.querySelector('input[name="mode"]:checked').value;
-
-    let teams;
-    if (mode === "a") teams = maakTeamsA(metGasten);
-    else teams = maakTeamsRandom(metGasten);
-
-    if (setIsHerhaling(teams)) {
-        alert("Deze teams zijn hetzelfde als de vorige loting. Nogmaals loten voor nieuwe combinaties.");
-        return;
+    function genereerOptimaleBanen() {
+        let actieveSpelers = spelers.filter(s => s.actief);
+        let aantalAanwezig = actieveSpelers.length;
+        if (aantalAanwezig === 0) {
+            alert("Vink eerst aan welke spelers er vandaag aanwezig zijn!");
+            return;
+        }
+        let benodigdeSpelers = aantalAanwezig <= 4 ? 4 : 8;
+        let aantalBanen = benodigdeSpelers === 4 ? 1 : 2;
+        let gastenToegevoegd = 0;
+        let tossPoule = [...actieveSpelers];
+        while (tossPoule.length < benodigdeSpelers) {
+            gastenToegevoegd++;
+            tossPoule.push({
+                id: `gast-${gastenToegevoegd}`,
+                naam: `Gast ${gastenToegevoegd}`,
+                niveau: 7,
+                isGast: true
+            });
+        }
+        initialiseerGeschiedenis(tossPoule);
+        tossPoule.sort((a, b) => a.niveau - b.niveau);
+        let besteSchema = null;
+        let laagsteStraf = Infinity;
+        for (let i = 0; i < 200; i++) {
+            let kandidaat = [...tossPoule];
+            for (let j = kandidaat.length - 1; j > 0; j--) {
+                const k = Math.floor(Math.random() * (j + 1));
+                [kandidaat[j], kandidaat[k]] = [kandidaat[k], kandidaat[j]];
+            }
+            let strafscore = berekenSchemaStrafpunten(kandidaat, aantalBanen);
+            if (strafscore < laagsteStraf) {
+                laagsteStraf = strafscore;
+                besteSchema = kandidaat;
+            }
+        }
+        updateGeschiedenis(besteSchema, aantalBanen);
+        rondeNummer++;
+        slaDataOp();
+        document.getElementById('ronde-teller').textContent = `Ronde ${rondeNummer}`;
+        let gastMelding = gastenToegevoegd > 0 ? `<p style="color:#d35400; font-size:13px; text-align:center;">⚠️ Er zijn automatisch ${gastenToegevoegd} gast(en) toegevoegd om de banen te vullen.</p>` : '';
+        let indelingHtml = gastMelding;
+        indelingHtml += `
+            <h3 class="court-title">Baan 1</h3>
+            <div class="match-box">
+                <strong>${besteSchema[0].naam} (st. ${besteSchema[0].niveau}) & ${besteSchema[1].naam} (st. ${besteSchema[1].niveau})</strong>
+                <span class="vs">VS</span>
+                <strong>${besteSchema[2].naam} (st. ${besteSchema[2].niveau}) & ${besteSchema[3].naam} (st. ${besteSchema[3].niveau})</strong>
+            </div>
+        `;
+        if (aantalBanen === 2) {
+            indelingHtml += `
+                <h3 class="court-title">Baan 2</h3>
+                <div class="match-box">
+                    <strong>${besteSchema[4].naam} (st. ${besteSchema[4].niveau}) & ${besteSchema[5].naam} (st. ${besteSchema[5].niveau})</strong>
+                    <span class="vs">VS</span>
+                    <strong>${besteSchema[6].naam} (st. ${besteSchema[6].niveau}) & ${besteSchema[7].naam} (st. ${besteSchema[7].niveau})</strong>
+                </div>
+            `;
+        }
+        document.getElementById('banen-container').innerHTML = indelingHtml;
     }
-
-    toonTeams(teams);
-    saveHistorie(teams);
-    laatsteTeams = teams;
-}
+    function updateGeschiedenis(schema, banenAantal) {
+        function registreer(p1, p2) {
+            if (!geschiedenisMatrix[p1.naam]) geschiedenisMatrix[p1.naam] = {};
+            geschiedenisMatrix[p1.naam][p2.naam] = (geschiedenisMatrix[p1.naam][p2.naam] || 0) + 1;
+            if (!geschiedenisMatrix[p2.naam]) geschiedenisMatrix[p2.naam] = {};
+            geschiedenisMatrix[p2.naam][p1.naam] = (geschiedenisMatrix[p2.naam][p1.naam] || 0) + 1;
+        }
+        registreer(schema[0], schema[1]); registreer(schema[0], schema[2]); registreer(schema[0], schema[3]);
+        registreer(schema[1], schema[2]); registreer(schema[1], schema[3]); registreer(schema[2], schema[3]);
+        if (banenAantal === 2) {
+            registreer(schema[4], schema[5]); registreer(schema[4], schema[6]); registreer(schema[4], schema[7]);
+            registreer(schema[5], schema[6]); registreer(schema[5], schema[7]); registreer(schema[6], schema[7]);
+        }
+    }
+    function resetHistorie() {
+        if(confirm("Weet je zeker dat je alle gespeelde rondes en het geheugen wilt wissen?")) {
+            geschiedenisMatrix = {};
+            rondeNummer = 0;
+            slaDataOp();
+            document.getElementById('ronde-teller').textContent = '';
+            document.getElementById('banen-container').innerHTML = '<p style="text-align:center;">Geheugen gewist.</p>';
+            updateSpelersLijst();
+        }
+    }
+    if(rondeNummer > 0) {
+        document.getElementById('ronde-teller').textContent = `Ronde ${rondeNummer}`;
+    }
+    updateSpelersLijst();
 </script>
-
 </body>
 </html>
