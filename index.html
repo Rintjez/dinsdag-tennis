@@ -336,8 +336,8 @@
         let straf = 0;
         function controleerMatch(p1, p2, p3, p4) {
             if(!p1 || !p2 || !p3 || !p4) return;
-            straf += (geschiedenisMatrix[p1.naam]?.[p2.naam] || 0) * 3;
-            straf += (geschiedenisMatrix[p3.naam]?.[p4.naam] || 0) * 3;
+            straf += (geschiedenisMatrix[p1.naam]?.[p2.naam] || 0) * 50;
+            straf += (geschiedenisMatrix[p3.naam]?.[p4.naam] || 0) * 50;
             straf += (geschiedenisMatrix[p1.naam]?.[p3.naam] || 0);
             straf += (geschiedenisMatrix[p1.naam]?.[p4.naam] || 0);
             straf += (geschiedenisMatrix[p2.naam]?.[p3.naam] || 0);
